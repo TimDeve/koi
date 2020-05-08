@@ -1,0 +1,19 @@
+(load "git@github.com:carpentry-org/http@0.0.1")
+
+(deftype HttpStatus
+  Ok)
+
+(defmodule Res
+  (sig send (Fn [HttpStatus String String] Response))
+  (defn send [status content-type body]
+   (Response.init
+     (match status
+      HttpStatus.Ok 200)
+     (match status
+      HttpStatus.Ok @"OK")
+     @"HTTP/1.1"
+     []
+     {@"Server" [@"Carp"]
+      @"Content-Type" [content-type]
+      @"Content-Length" [(str (length &body))]}
+     body)))

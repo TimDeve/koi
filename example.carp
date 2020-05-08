@@ -1,0 +1,37 @@
+(load "git@github.com:TimDeve/hoquet@v0.1.0")
+
+(load "cttp.carp")
+
+(def hello-html
+ (with Elements
+   (html {}
+
+    [(head {}
+      [(title {} [@"Hello Carp"])
+       (style {@"type" @"text/css"}
+         [@"
+           body {
+             color: #EEE;
+             background-color: #111;
+             font-family: sans-serif;
+           }
+         "])])
+
+     (body {}
+      [(p {}
+        [@"Hello"])
+       (hr {})
+       (p {}
+        [@"Carp"])])])))
+
+(sig handler (Fn [] Response))
+(defn handler []
+  (Res.send (HttpStatus.Ok)
+            @"text/html"
+            @&hello-html))
+
+(defn main []
+  (Cttp.serve "127.0.0.1"
+              8090
+              &handler))
+
