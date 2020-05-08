@@ -1,16 +1,17 @@
-(load "git@github.com:carpentry-org/http@0.0.1")
-
 (deftype HttpStatus
-  Ok)
+  Ok
+  NotFound)
 
 (defmodule Res
   (sig send (Fn [HttpStatus String String] Response))
   (defn send [status content-type body]
    (Response.init
      (match status
-      HttpStatus.Ok 200)
+      HttpStatus.Ok 200
+      HttpStatus.NotFound 404)
      (match status
-      HttpStatus.Ok @"OK")
+      HttpStatus.Ok @"OK"
+      HttpStatus.NotFound @"Not Found")
      @"HTTP/1.1"
      []
      {@"Server" [@"Carp"]

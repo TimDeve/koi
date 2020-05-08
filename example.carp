@@ -15,23 +15,26 @@
              background-color: #111;
              font-family: sans-serif;
            }
-         "])])
+         "])
 
-     (body {}
-      [(p {}
-        [@"Hello"])
-       (hr {})
-       (p {}
-        [@"Carp"])])])))
+       (body {}
+        [(p {}
+          [@"Hello"])
+         (hr {})
+         (p {}
+          [@"Carp"])])])])))
 
-(sig handler (Fn [] Response))
-(defn handler []
+(sig root-handler (Fn [] Response))
+(defn root-handler []
   (Res.send (HttpStatus.Ok)
             @"text/html"
             @&hello-html))
 
+(defn routes []
+  [(Route.init (HttpVerb.GET) @"/" root-handler)])
+
 (defn main []
   (Cttp.serve "127.0.0.1"
               8090
-              &handler))
+              &(routes)))
 

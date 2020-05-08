@@ -1,16 +1,46 @@
-(load "git@github.com:carpentry-org/sockets@edbb459fb909c51be907abca753a3ae8ea80f242")
-(load "git@github.com:carpentry-org/http@0.0.1")
-
+(load "deps.carp")
 (load "res.carp")
 
 (use Socket)
 
+(deftype HttpVerb
+ GET)
+
+(defmodule HttpVerb
+ (defn = [a b]
+  (match @a
+   b true
+   _ false)))
+
+(deftype Route [verb HttpVerb path String handler (Fn [] Response)])
+
+(sig not-found-handler (Fn [] Response))
+(defn not-found-handler []
+  (Res.send (HttpStatus.NotFound)
+            @"text/plain"
+            @""))
+
+;(sig get-handler-from-routes (Fn [HttpVerb String (Array Route)] (Fn [] Response)))
+(defn get-handler-from-routes [verb path routes]
+ (match (Array.find
+         &(fn [route]
+           (and
+            (= &verb (Route.verb route))
+            (= &path (Route.path route))))
+         &routes)
+  (Maybe.Just route) @(Route.handler &route)
+  (Maybe.Nothing)    not-found-handler))
+
 (defmodule Cttp
- (sig serve (Fn [String Int (Ref (Fn [] Response))] ()))
- (defn serve [ip port callback]
+ (sig serve (Fn [String Int &(Array Route)] ()))
+ (defn serve [ip port routes]
   (Socket.with-server server ip port
     (Socket.while-connection &server client
-      (send &client &(let-do [rs (Response.str &(~callback))]
-                       (println* &rs)
-                       rs))))))
+      (send &client &(let-do [handler (get-handler-from-routes
+                                        (HttpVerb.GET)
+                                        @"/"
+                                        @routes)
+                              res (Response.str &(handler))]
+                       (println* &res)
+                       res))))))
 
