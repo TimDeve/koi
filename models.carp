@@ -6,17 +6,29 @@
 
   (deftype HttpVerb
    GET
+   POST
    NOT_HANDLED)
 
   (defmodule HttpVerb
-   (defn = [a b]
-    (match @a
-     b true
-     _ false))
-
-   (defn parse [str]
-    (case str
+   (defn parse [s]
+    (case s
      "GET" (GET)
-     (NOT_HANDLED))))
+     "POST" (POST)
+     (NOT_HANDLED)))
+
+   (defn str [verb]
+    (match @verb
+     GET @"GET"
+     POST @"POST"
+     NOT_HANDLED @"NOT_HANDLED"))
+
+   (defn to-int [verb]
+    (match @verb
+     GET 0
+     POST 1
+     NOT_HANDLED 2))
+
+   (defn = [a b]
+    (Int.= (to-int a) (to-int b))))
 
   (deftype Route [verb HttpVerb path String handler (Fn [] Response)]))
