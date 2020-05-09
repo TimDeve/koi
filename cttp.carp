@@ -1,46 +1,54 @@
 (load "deps.carp")
+
+(load "models.carp")
 (load "res.carp")
 
 (use Socket)
 
-(deftype HttpVerb
- GET)
-
-(defmodule HttpVerb
- (defn = [a b]
-  (match @a
-   b true
-   _ false)))
-
-(deftype Route [verb HttpVerb path String handler (Fn [] Response)])
-
-(sig not-found-handler (Fn [] Response))
-(defn not-found-handler []
-  (Res.send (HttpStatus.NotFound)
-            @"text/plain"
-            @""))
-
-;(sig get-handler-from-routes (Fn [HttpVerb String (Array Route)] (Fn [] Response)))
-(defn get-handler-from-routes [verb path routes]
- (match (Array.find
-         &(fn [route]
-           (and
-            (= &verb (Route.verb route))
-            (= &path (Route.path route))))
-         &routes)
-  (Maybe.Just route) @(Route.handler &route)
-  (Maybe.Nothing)    not-found-handler))
-
 (defmodule Cttp
- (sig serve (Fn [String Int &(Array Route)] ()))
- (defn serve [ip port routes]
-  (Socket.with-server server ip port
-    (Socket.while-connection &server client
-      (send &client &(let-do [handler (get-handler-from-routes
-                                        (HttpVerb.GET)
-                                        @"/"
-                                        @routes)
-                              res (Response.str &(handler))]
-                       (println* &res)
-                       res))))))
+  (sig not-found-handler (Fn [] Response))
+  (defn not-found-handler []
+    (Res.send (HttpStatus.NotFound)
+              @"text/html"
+              @"<h1>Not Found</h1>"))
+
+  (sig internal-server-error-handler (Fn [] Response))
+  (defn internal-server-error-handler []
+    (Res.send (HttpStatus.InternalServerError)
+              @"text/html"
+              @"<h1>Internal Server Error</h1>"))
+
+  (hidden get-handler-from-routes)
+  (private get-handler-from-routes)
+  ;(sig get-handler-from-routes (Fn [HttpVerb String (Array Route)] (Fn [] Response)))
+  (defn get-handler-from-routes [req routes]
+    (let [verb (HttpVerb.parse (Request.verb &req))
+          path (URI.str (Request.uri &req))]
+     (match (Array.find
+             &(fn [route]
+               (and
+                (= &verb (Route.verb route))
+                (= &path (Route.path route))))
+             &routes)
+      (Maybe.Just route) @(Route.handler &route)
+      (Maybe.Nothing)    not-found-handler)))
+
+  (hidden get-handler)
+  (private get-handler)
+  (sig get-handler (Fn [String (Array Route)] (Fn [] Response)))
+  (defn get-handler [req-str routes]
+    (match (Request.parse &req-str)
+      (Result.Success req) (get-handler-from-routes req routes)
+      (Result.Error _)     internal-server-error-handler))
+
+  (sig serve (Fn [String Int &(Array Route)] ()))
+  (defn serve [ip port routes]
+    (Socket.with-server server ip port
+      (Socket.while-connection &server client
+        (let-do [req (read &client)]
+          (println* &req)
+          (send &client &(let-do [handler (get-handler req @routes)
+                                  res (Response.str &(handler))]
+                           (println* &res)
+                           res)))))))
 

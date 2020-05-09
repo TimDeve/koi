@@ -1,37 +1,56 @@
-(load "git@github.com:TimDeve/hoquet@v0.1.0")
+(load "git@github.com:TimDeve/hoquet@v0.1.1")
 
 (load "cttp.carp")
 
-(def hello-html
+(use Cttp)
+
+(defn css []
+ (with Elements
+   (style {@"type" @"text/css"}
+     [@"
+       body {
+         color: #EEE;
+         background-color: #111;
+         font-family: sans-serif;
+       }
+
+       a {
+        color: rgb(101, 111, 253);
+       }
+
+       a:visited {
+        color: rgb(192, 158, 255);
+       }
+     "])))
+
+(defn html-template [body-content]
  (with Elements
    (html {}
 
     [(head {}
       [(title {} [@"Hello Carp"])
-       (style {@"type" @"text/css"}
-         [@"
-           body {
-             color: #EEE;
-             background-color: #111;
-             font-family: sans-serif;
-           }
-         "])
-
-       (body {}
-        [(p {}
-          [@"Hello"])
-         (hr {})
-         (p {}
-          [@"Carp"])])])])))
+       (css)])
+     (body {} body-content)])))
 
 (sig root-handler (Fn [] Response))
 (defn root-handler []
+ (with Elements
   (Res.send (HttpStatus.Ok)
             @"text/html"
-            @&hello-html))
+            (html-template [(p {} [@"Hello Carp"])
+                            (hr {})
+                            (a {@"href" @"/dice"} [@"Roll the dice"])]))))
+
+(sig dice-handler (Fn [] Response))
+(defn dice-handler []
+ (with Elements
+  (Res.send (HttpStatus.Ok)
+            @"text/html"
+            (html-template [(p {} [@"You rolled a " (str (Int.random-between 1 7))])]))))
 
 (defn routes []
-  [(Route.init (HttpVerb.GET) @"/" root-handler)])
+  [(Route.init (HttpVerb.GET) @"/" root-handler)
+   (Route.init (HttpVerb.GET) @"/dice" dice-handler)])
 
 (defn main []
   (Cttp.serve "127.0.0.1"

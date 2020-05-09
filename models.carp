@@ -1,0 +1,22 @@
+(defmodule Cttp
+  (deftype HttpStatus
+    Ok
+    NotFound
+    InternalServerError)
+
+  (deftype HttpVerb
+   GET
+   NOT_HANDLED)
+
+  (defmodule HttpVerb
+   (defn = [a b]
+    (match @a
+     b true
+     _ false))
+
+   (defn parse [str]
+    (case str
+     "GET" (GET)
+     (NOT_HANDLED))))
+
+  (deftype Route [verb HttpVerb path String handler (Fn [] Response)]))
