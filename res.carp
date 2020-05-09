@@ -1,6 +1,6 @@
 (load "models.carp")
 
-(use Cttp)
+(use Koi)
 
 (defmodule Res
   (sig send (Fn [HttpStatus String String] Response))

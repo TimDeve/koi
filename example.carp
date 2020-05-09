@@ -1,8 +1,8 @@
 (load "git@github.com:TimDeve/hoquet@v0.1.1")
 
-(load "cttp.carp")
+(load "koi.carp")
 
-(use Cttp)
+(use Koi)
 
 (defn css []
  (with Elements
@@ -53,7 +53,7 @@
    (Route.init (HttpVerb.GET) @"/dice" dice-handler)])
 
 (defn main []
-  (Cttp.serve "127.0.0.1"
+  (serve "127.0.0.1"
               8090
               &(routes)))
 

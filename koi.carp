@@ -5,7 +5,7 @@
 
 (use Socket)
 
-(defmodule Cttp
+(defmodule Koi
   (sig not-found-handler (Fn [] Response))
   (defn not-found-handler []
     (Res.send (HttpStatus.NotFound)

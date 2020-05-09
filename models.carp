@@ -1,4 +1,4 @@
-(defmodule Cttp
+(defmodule Koi
   (deftype HttpStatus
     Ok
     NotFound
