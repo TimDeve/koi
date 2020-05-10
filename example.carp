@@ -81,7 +81,7 @@
 (sig post-example-handler (Fn [Request] Response))
 (defn post-example-handler [req]
   (do
-    (match (URI.query-map-from-str @(Request.body &req))
+    (match (URI.query-map-from-str (Request.body &req))
       (Result.Success q) (update-name-and-age q)
       (Result.Error e) (println* e))
    (Res.found @"/")))
