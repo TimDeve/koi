@@ -6,6 +6,9 @@
 
 (use Koi)
 
+(def my-name @"Carp")
+(def my-age @"1337")
+
 (defn css []
  (with Elements
    (style {@"type" @"text/css"}
@@ -25,10 +28,22 @@
        }
      "])))
 
+(defn a-form []
+ (with Elements
+  (form
+   {@"action" @"/submit"
+    @"method" @"post"}
+   [(input {@"name" @"name"
+            @"placeholder" @"Name"})
+    (br {})
+    (input {@"name" @"age"
+            @"placeholder" @"Age"})
+    (br {})
+    (button {} [@"Submit"])])))
+
 (defn html-template [body-content]
  (with Elements
    (html {}
-
     [(head {}
       [(title {} [@"Hello Carp"])
        (css)])
@@ -39,9 +54,16 @@
  (with Elements
   (Res.send (HttpStatus.Ok)
             @"text/html"
-            (html-template [(p {} [@"Hello Carp"])
+            (html-template [(p {} [@"Hello "
+                                   @&my-name
+                                   @", you are "
+                                   @&my-age
+                                   @" years old."])
                             (hr {})
-                            (a {@"href" @"/dice"} [@"Roll the dice"])]))))
+                            (a {@"href" @"/dice"} [@"Roll the dice"])
+                            (hr {})
+                            (p {} [@"Update your info:"])
+                            (a-form)]))))
 
 (sig dice-handler (Fn [Request] Response))
 (defn dice-handler [req]
@@ -50,12 +72,25 @@
             @"text/html"
             (html-template [(p {} [@"You rolled a " (str (Int.random-between 1 7))])]))))
 
+(sig update-name-and-age (Fn [(Map String String)] ()))
+(defn update-name-and-age [m]
+ (let-do [mss (the (Map String String) m)]
+  (set! my-name (Map.get-with-default &mss "name" "Carp"))
+  (set! my-age (Map.get-with-default &mss "age" "1337"))))
+
+(sig post-example-handler (Fn [Request] Response))
+(defn post-example-handler [req]
+  (do
+    (match (URI.query-map-from-str @(Request.body &req))
+      (Result.Success q) (update-name-and-age q)
+      (Result.Error e) (println* e))
+   (Res.found @"/")))
+
 (defn routes []
-  [(Route.init (HttpVerb.GET) @"/" root-handler)
-   (Route.init (HttpVerb.GET) @"/dice" dice-handler)])
+  [(Route.init (HttpVerb.GET)  @"/"       root-handler)
+   (Route.init (HttpVerb.GET)  @"/dice"   dice-handler)
+   (Route.init (HttpVerb.POST) @"/submit" post-example-handler)])
 
 (defn main []
-  (serve "127.0.0.1"
-              8090
-              &(routes)))
+  (serve "127.0.0.1" 8090 &(routes)))
 

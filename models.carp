@@ -3,6 +3,7 @@
     Ok
     NotFound
     BadRequest
+    Found
     InternalServerError)
 
   (deftype HttpVerb

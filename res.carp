@@ -19,4 +19,16 @@
      {@"Server" [@"Carp"]
       @"Content-Type" [content-type]
       @"Content-Length" [(str (length &body))]}
-     body)))
+     body))
+
+  (sig found (Fn [String] Response))
+  (defn found [uri]
+   (Response.init
+     302
+     @"Found"
+     @"HTTP/1.1"
+     []
+     {@"Server" [@"Carp"]
+      @"Location" [uri]
+      @"Content-Length" [@"0"]}
+     @"")))

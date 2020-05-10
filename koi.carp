@@ -26,7 +26,7 @@
 
   (hidden get-handler-from-routes)
   (private get-handler-from-routes)
-  ;(sig get-handler-from-routes (Fn [(Ref Request) (Array Route)] (Fn [Request] Response)))
+  (sig get-handler-from-routes (Fn [(Ref Request) (Array Route)] (Fn [Request] Response)))
   (defn get-handler-from-routes [req routes]
     (let [verb (HttpVerb.parse (Request.verb req))
           path (URI.str (Request.uri req))]
