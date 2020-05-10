@@ -1,0 +1,10 @@
+(defmodule Req
+  (defn plus-to-space [s]
+   (Pattern.substitute #"+" s " " -1))
+
+  (defn form-unescape [s]
+   (URI.unescape &(plus-to-space s)))
+
+  (defn params-from-form [s]
+   (Result.map (URI.query-map-from-str s)
+     &(fn [q] (Map.endo-map &(fn [k v] (form-unescape v)) q)))))

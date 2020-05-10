@@ -75,13 +75,13 @@
 (sig update-name-and-age (Fn [(Map String String)] ()))
 (defn update-name-and-age [m]
  (let-do [mss (the (Map String String) m)]
-  (set! my-name (Map.get-with-default &mss "name" "Carp"))
-  (set! my-age (Map.get-with-default &mss "age" "1337"))))
+  (set! my-name (Map.get &mss "name"))
+  (set! my-age (Map.get &mss "age"))))
 
 (sig post-example-handler (Fn [Request] Response))
 (defn post-example-handler [req]
   (do
-    (match (URI.query-map-from-str (Request.body &req))
+    (match (Req.params-from-form (Request.body &req))
       (Result.Success q) (update-name-and-age q)
       (Result.Error e) (println* e))
    (Res.found @"/")))
