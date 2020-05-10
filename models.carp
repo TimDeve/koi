@@ -2,6 +2,7 @@
   (deftype HttpStatus
     Ok
     NotFound
+    BadRequest
     InternalServerError)
 
   (deftype HttpVerb
@@ -23,7 +24,7 @@
      NOT_HANDLED @"NOT_HANDLED"))
 
    (defn to-int [verb]
-    (match @verb
+    (match-ref verb
      GET 0
      POST 1
      NOT_HANDLED 2))
@@ -31,4 +32,4 @@
    (defn = [a b]
     (Int.= (to-int a) (to-int b))))
 
-  (deftype Route [verb HttpVerb path String handler (Fn [] Response)]))
+  (deftype Route [verb HttpVerb path String handler (Fn [Request] Response)]))

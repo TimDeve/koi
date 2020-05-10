@@ -1,3 +1,5 @@
+(Debug.sanitize-addresses)
+
 (load "git@github.com:TimDeve/hoquet@v0.1.1")
 
 (load "koi.carp")
@@ -32,8 +34,8 @@
        (css)])
      (body {} body-content)])))
 
-(sig root-handler (Fn [] Response))
-(defn root-handler []
+(sig root-handler (Fn [Request] Response))
+(defn root-handler [req]
  (with Elements
   (Res.send (HttpStatus.Ok)
             @"text/html"
@@ -41,8 +43,8 @@
                             (hr {})
                             (a {@"href" @"/dice"} [@"Roll the dice"])]))))
 
-(sig dice-handler (Fn [] Response))
-(defn dice-handler []
+(sig dice-handler (Fn [Request] Response))
+(defn dice-handler [req]
  (with Elements
   (Res.send (HttpStatus.Ok)
             @"text/html"
