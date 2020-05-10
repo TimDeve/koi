@@ -6,24 +6,30 @@
 (use Socket)
 
 (defmodule Koi
-  (sig not-found-handler (Fn [] Response))
-  (defn not-found-handler []
+  (sig not-found-handler (Fn [Request] Response))
+  (defn not-found-handler [req]
     (Res.send (HttpStatus.NotFound)
               @"text/html"
               @"<h1>Not Found</h1>"))
 
-  (sig internal-server-error-handler (Fn [] Response))
-  (defn internal-server-error-handler []
+  (sig internal-server-error-handler (Fn [Request] Response))
+  (defn internal-server-error-handler [req]
     (Res.send (HttpStatus.InternalServerError)
               @"text/html"
               @"<h1>Internal Server Error</h1>"))
 
+  (sig bad-request-handler (Fn [] Response))
+  (defn bad-request-handler []
+    (Res.send (HttpStatus.BadRequest)
+              @"text/plain"
+              @"Bad Request"))
+
   (hidden get-handler-from-routes)
   (private get-handler-from-routes)
-  ;(sig get-handler-from-routes (Fn [HttpVerb String (Array Route)] (Fn [] Response)))
+  ;(sig get-handler-from-routes (Fn [(Ref Request) (Array Route)] (Fn [Request] Response)))
   (defn get-handler-from-routes [req routes]
-    (let [verb (HttpVerb.parse (Request.verb &req))
-          path (URI.str (Request.uri &req))]
+    (let [verb (HttpVerb.parse (Request.verb req))
+          path (URI.str (Request.uri req))]
      (match (Array.find
              &(fn [route]
                (and
@@ -38,8 +44,8 @@
   (sig get-handler (Fn [String (Array Route)] (Fn [] Response)))
   (defn get-handler [req-str routes]
     (match (Request.parse &req-str)
-      (Result.Success req) (get-handler-from-routes req routes)
-      (Result.Error _)     internal-server-error-handler))
+      (Result.Success req) (fn [] ((get-handler-from-routes &req routes) req))
+      (Result.Error _)     bad-request-handler))
 
   (sig serve (Fn [String Int &(Array Route)] ()))
   (defn serve [ip port routes]
