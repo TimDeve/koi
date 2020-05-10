@@ -6,5 +6,6 @@
    (URI.unescape &(plus-to-space s)))
 
   (defn params-from-form [s]
-   (Result.map (URI.query-map-from-str s)
-     &(fn [q] (Map.endo-map &(fn [k v] (form-unescape v)) q)))))
+   (the (Result (Map String String) String)
+        (Result.map (URI.query-map-from-str s)
+          &(fn [q] (Map.endo-map &(fn [k v] (form-unescape v)) q))))))

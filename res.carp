@@ -9,10 +9,14 @@
      (match status
       HttpStatus.Ok 200
       HttpStatus.NotFound 404
+      HttpStatus.BadRequest 400
+      HttpStatus.Found 302
       HttpStatus.InternalServerError 500)
      (match status
       HttpStatus.Ok @"OK"
       HttpStatus.NotFound @"Not Found"
+      HttpStatus.BadRequest @"Bad Request"
+      HttpStatus.Found @"Found"
       HttpStatus.InternalServerError @"Internal Server Error")
      @"HTTP/1.1"
      []

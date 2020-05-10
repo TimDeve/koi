@@ -1,0 +1,86 @@
+(load "git@github.com:TimDeve/pair-spread@v0.1.0")
+
+(def todos-db [@"Have less things on list"])
+
+(defmodule TodoDomain
+  (defn path-prefix [s] (String.concat &[@"/todos" @s]))
+
+  (defn add-todo-form-html []
+    (with Elements
+      (form
+       {@"action" (path-prefix "")
+        @"method" @"POST"}
+       [(input {@"name" @"description"
+                @"placeholder" @"What to do?"})
+        (button {} [@"Add"])])))
+
+  (defn delete-todo-form-html [id]
+    (with Elements
+      (form
+       {@"action" (path-prefix "/delete")
+        @"method" @"POST"}
+       [(input {@"name" @"id"
+                @"value" (str id)
+                @"type" @"hidden"})
+        (button {} [@"X"])])))
+
+  (defn todo-html [id description]
+    (with Elements
+     (li {}
+      [(delete-todo-form-html id)
+       description])))
+
+  (defn todos-html [todos]
+    (with Elements
+      (ul {}
+       (Array.copy-map
+        &(fn [pair]
+          (Pair.spread [id description @pair]
+           (todo-html id description)))
+        &(Array.enumerated todos)))))
+
+  (defn get-todos-page-html [todos]
+    (with Elements
+      (html {}
+        [(body {}
+          [(h1 {} [@"Todo"])
+           (add-todo-form-html)
+           (todos-html todos)])])))
+
+  (sig get-todos-handler (Fn [Request] Response))
+  (defn get-todos-handler [req]
+    (Res.send (HttpStatus.Ok)
+              @"text/html"
+              (get-todos-page-html &todos-db)))
+
+  (sig get-todos-handler (Fn [Request] Response))
+  (defn get-todos-handler [req]
+    (Res.send (HttpStatus.Ok)
+              @"text/html"
+              (get-todos-page-html &todos-db)))
+
+  (sig add-todo-handler (Fn [Request] Response))
+  (defn add-todo-handler [req]
+    (match (Req.params-from-form (Request.body &req))
+      (Result.Success q) (do
+                          (push-back! &todos-db (Map.get &q "description"))
+                          (Res.found (path-prefix "")))
+      (Result.Error e) (bad-request-handler)))
+
+  (sig remove-todo-handler (Fn [Request] Response))
+  (defn remove-todo-handler [req]
+    (match (Req.params-from-form (Request.body &req))
+      (Result.Success q) (do
+                          (set!
+                            todos-db
+                            (Array.remove-nth
+                              (Int.from-string &(Map.get &q "id"))
+                              @&todos-db))
+                          (Res.found (path-prefix "")))
+      (Result.Error e) (bad-request-handler)))
+
+  (defn routes []
+    [(Route.init (HttpVerb.GET)  (path-prefix "") get-todos-handler)
+     (Route.init (HttpVerb.POST) (path-prefix "") add-todo-handler)
+     (Route.init (HttpVerb.POST) (path-prefix "/delete") remove-todo-handler)]))
+

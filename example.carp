@@ -1,8 +1,9 @@
 (Debug.sanitize-addresses)
 
 (load "git@github.com:TimDeve/hoquet@v0.1.1")
-
 (load "koi.carp")
+
+(load "example-src/todo.carp")
 
 (use Koi)
 
@@ -60,6 +61,8 @@
                                    @&my-age
                                    @" years old."])
                             (hr {})
+                            (a {@"href" @"/todos"} [@"Todo app"])
+                            (hr {})
                             (a {@"href" @"/dice"} [@"Roll the dice"])
                             (hr {})
                             (p {} [@"Update your info:"])
@@ -72,8 +75,8 @@
             @"text/html"
             (html-template [(p {} [@"You rolled a " (str (Int.random-between 1 7))])]))))
 
-(sig update-name-and-age (Fn [(Map String String)] ()))
-(defn update-name-and-age [m]
+(sig update-name-and-age! (Fn [(Map String String)] ()))
+(defn update-name-and-age! [m]
  (let-do [mss (the (Map String String) m)]
   (set! my-name (Map.get &mss "name"))
   (set! my-age (Map.get &mss "age"))))
@@ -82,7 +85,7 @@
 (defn post-example-handler [req]
   (do
     (match (Req.params-from-form (Request.body &req))
-      (Result.Success q) (update-name-and-age q)
+      (Result.Success q) (update-name-and-age! q)
       (Result.Error e) (println* e))
    (Res.found @"/")))
 
@@ -92,5 +95,5 @@
    (Route.init (HttpVerb.POST) @"/submit" post-example-handler)])
 
 (defn main []
-  (serve "127.0.0.1" 8090 &(routes)))
+  (serve "127.0.0.1" 8090 &(Array.concat &[(routes) (TodoDomain.routes)])))
 
