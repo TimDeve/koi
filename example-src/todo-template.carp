@@ -1,0 +1,89 @@
+(load "git@github.com:TimDeve/pair-spread@v0.1.0")
+
+(defmodule TodoDomain
+  (defmodule Template
+    (defn get-todos-page-css []
+     (with Elements
+       (style {@"type" @"text/css"}
+         [@"
+           body {
+             font-family: sans-serif;
+           }
+
+           .container {
+             max-width: 500px;
+             margin: 50px auto 0 auto;
+             padding: 10px 20px;
+             border-radius: 8px;
+             box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+           }
+
+           .add-todo-form input {
+             width: 100%;
+             border-width: 0 0 1px 0;
+             font-size: 16px;
+             padding-bottom: 5px;
+           }
+
+           .todo form {
+             display: inline-block;
+           }
+
+           .todo button {
+             border: none;
+             background: none;
+             cursor: pointer;
+             padding-left: 0;
+           }
+
+           .todos {
+             list-style: none;
+             padding: 0;
+           }
+         "])))
+
+    (defn add-todo-form-html []
+      (with Elements
+        (form
+         {@"action" @"/todos"
+          @"method" @"POST"
+          @"class" @"add-todo-form"}
+         [(input {@"name" @"description"
+                  @"placeholder" @"What to do?"})])))
+
+    (defn delete-todo-form-html [id]
+      (with Elements
+        (form
+         {@"action" @"/todos/delete"
+          @"method" @"POST"}
+         [(input {@"name" @"id"
+                  @"value" (str id)
+                  @"type" @"hidden"})
+          (button {} [@"&#10005;"])])))
+
+    (defn todo-html [id description]
+      (with Elements
+       (li {@"class" @"todo"}
+        [(delete-todo-form-html id)
+         description])))
+
+    (defn todos-html [todos]
+      (with Elements
+        (ul {@"class" @"todos"}
+         (Array.copy-map
+          &(fn [pair]
+            (Pair.spread [id description @pair]
+             (todo-html id description)))
+          &(Array.enumerated todos)))))
+
+    (defn get-todos-page-html [todos]
+      (with Elements
+        (html {}
+          [(head {}
+            [(get-todos-page-css)])
+           (body {}
+            [(div {@"class" @"container"}
+              [(h1 {} [@"Todo"])
+               (add-todo-form-html)
+               (todos-html todos)])])])))))
+

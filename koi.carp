@@ -50,12 +50,14 @@
 
   (sig serve (Fn [String Int &(Array Route)] ()))
   (defn serve [ip port routes]
-    (Socket.with-server server ip port
-      (Socket.while-connection &server client
-        (let-do [req (read &client)]
-          (println* &req)
-          (send &client &(let-do [res (get-res-from-routes req @routes)
-                                  res-str (Response.str &res)]
-                           (println* &res-str)
-                           res-str)))))))
+    (do
+      (println* (fmt "Listening on %s:%i" ip port))
+      (Socket.with-server server ip port
+        (Socket.while-connection &server client
+          (let-do [req (read &client)]
+            (println* &req)
+            (send &client &(let-do [res     (get-res-from-routes req @routes)
+                                    res-str (Response.str &res)]
+                             (println* &res-str)
+                             res-str))))))))
 
