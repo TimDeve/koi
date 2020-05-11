@@ -55,9 +55,9 @@
       (Socket.with-server server ip port
         (Socket.while-connection &server client
           (let-do [req (read &client)]
-            (println* &req)
+            (println* &(fmt "---REQUEST---\n%s" &req))
             (send &client &(let-do [res     (get-res-from-routes req @routes)
                                     res-str (Response.str &res)]
-                             (println* &res-str)
+                             (println* &(fmt "---RESPONSE---\n%s" &res-str))
                              res-str))))))))
 
