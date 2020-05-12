@@ -7,20 +7,20 @@
 (use Socket)
 
 (defmodule Koi
-  (sig not-found-handler (Fn [Request] Response))
-  (defn not-found-handler [req]
+  (sig not-found (Fn [Request] Response))
+  (defn not-found [req]
     (Res.send (HttpStatus.NotFound)
               @"text/html"
               @"<h1>Not Found</h1>"))
 
-  (sig internal-server-error-handler (Fn [Request] Response))
-  (defn internal-server-error-handler [req]
+  (sig internal-server-error (Fn [Request] Response))
+  (defn internal-server-error [req]
     (Res.send (HttpStatus.InternalServerError)
               @"text/html"
               @"<h1>Internal Server Error</h1>"))
 
-  (sig bad-request-handler (Fn [] Response))
-  (defn bad-request-handler []
+  (sig bad-request (Fn [] Response))
+  (defn bad-request []
     (Res.send (HttpStatus.BadRequest)
               @"text/plain"
               @"Bad Request"))
@@ -38,7 +38,7 @@
                 (= &path (Route.path route))))
              &routes)
       (Maybe.Just route) @(Route.handler &route)
-      (Maybe.Nothing)    not-found-handler)))
+      (Maybe.Nothing)    not-found)))
 
   (hidden get-res-from-routes)
   (private get-res-from-routes)
@@ -46,7 +46,7 @@
   (defn get-res-from-routes [req-str routes]
     (match (Request.parse &req-str)
       (Result.Success req) ((get-handler-from-routes &req routes) req)
-      (Result.Error _)     (bad-request-handler)))
+      (Result.Error _)     (bad-request)))
 
   (sig serve (Fn [String Int &(Array Route)] ()))
   (defn serve [ip port routes]

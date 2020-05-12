@@ -9,7 +9,9 @@
 (use Koi)
 
 (def my-name @"Carp")
-(def my-age @"1337")
+(def my-age 1337)
+
+(deftype PersonalInfo [age Int name String])
 
 (defn css []
  (with Elements
@@ -59,7 +61,7 @@
             (html-template [(p {} [@"Hello "
                                    @&my-name
                                    @", you are "
-                                   @&my-age
+                                   (Int.str @&my-age)
                                    @" years old."])
                             (hr {})
                             (a {@"href" @"/todos"} [@"Todo app"])
@@ -76,19 +78,21 @@
             @"text/html"
             (html-template [(p {} [@"You rolled a " (str (Int.random-between 1 7))])]))))
 
-(sig update-name-and-age! (Fn [(Map String String)] ()))
-(defn update-name-and-age! [m]
- (let-do [mss (the (Map String String) m)]
-  (set! my-name (Map.get &mss "name"))
-  (set! my-age (Map.get &mss "age"))))
+(sig update-name-and-age! (Fn [PersonalInfo] ()))
+(defn update-name-and-age! [infos]
+  (do
+   (set! my-name @(PersonalInfo.name &infos))
+   (set! my-age @(PersonalInfo.age &infos))))
 
 (sig post-example-handler (Fn [Request] Response))
 (defn post-example-handler [req]
-  (do
-    (match (Req.params-from-form (Request.body &req))
-      (Result.Success q) (update-name-and-age! q)
-      (Result.Error e) (println* e))
-   (Res.found @"/")))
+  (match (Req.struct-from-form PersonalInfo (Request.body &req))
+    (Result.Success inf) (do
+                          (update-name-and-age! inf)
+                          (Res.found @"/"))
+    (Result.Error e)     (do
+                          (println* e)
+                          (bad-request))))
 
 (defn routes []
   [(Route.init (HttpVerb.GET)  @"/"       root-handler)

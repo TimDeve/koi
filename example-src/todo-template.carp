@@ -2,7 +2,7 @@
 
 (defmodule TodoDomain
   (defmodule Template
-    (defn get-todos-page-css []
+    (defn todos-page-css []
      (with Elements
        (style {@"type" @"text/css"}
          [@"
@@ -59,7 +59,7 @@
          [(input {@"name" @"id"
                   @"value" (str id)
                   @"type" @"hidden"})
-          (button {} [@"&#10005;"])])))
+          (button {} [@"×"])])))
 
     (defn todo-html [id description]
       (with Elements
@@ -76,11 +76,12 @@
              (todo-html id description)))
           &(Array.enumerated todos)))))
 
-    (defn get-todos-page-html [todos]
+    (defn todos-page-html [todos]
       (with Elements
         (html {}
           [(head {}
-            [(get-todos-page-css)])
+            [(meta {@"charset" @"UTF-8"})
+             (todos-page-css)])
            (body {}
             [(div {@"class" @"container"}
               [(h1 {} [@"Todo"])

@@ -11,7 +11,7 @@
   (defn get-todos-handler [req]
     (Res.send (HttpStatus.Ok)
               @"text/html"
-              (Template.get-todos-page-html &todos-db)))
+              (Template.todos-page-html &todos-db)))
 
   (sig add-todo-handler (Fn [Request] Response))
   (defn add-todo-handler [req]
@@ -19,7 +19,7 @@
       (Result.Success q) (do
                           (push-back! &todos-db (Map.get &q "description"))
                           (Res.found (path-prefix "")))
-      (Result.Error e) (bad-request-handler)))
+      (Result.Error e) (bad-request)))
 
   (sig remove-todo-handler (Fn [Request] Response))
   (defn remove-todo-handler [req]
@@ -31,7 +31,7 @@
                               (Int.from-string &(Map.get &q "id"))
                               @&todos-db))
                           (Res.found (path-prefix "")))
-      (Result.Error e) (bad-request-handler)))
+      (Result.Error e) (bad-request)))
 
   (defn routes []
     [(Route.init (HttpVerb.GET)  (path-prefix "") get-todos-handler)

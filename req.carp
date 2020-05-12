@@ -8,4 +8,9 @@
   (defn params-from-form [s]
    (the (Result (Map String String) String)
         (Result.map (URI.query-map-from-str s)
-          &(fn [q] (Map.endo-map &(fn [k v] (form-unescape v)) q))))))
+          &(fn [q] (Map.endo-map &(fn [k v] (form-unescape v)) q)))))
+
+  (defmacro struct-from-form [t s]
+    (list 'match (list 'Req.params-from-form s)
+      (list 'Result.Success 'm) (list 'Result.Success (list 'Sheriff.unmarshall t (list 'ref 'm)))
+      (list 'Result.Error 'e) (list 'Result.Error 'e))))
