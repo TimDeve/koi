@@ -27,6 +27,16 @@
       Found 302
       InternalServerError 500)))
 
+  (deftype HttpVersion
+   One
+   OneDotOne)
+
+  (defmodule HttpVersion
+   (defn str [version]
+    (match-ref version
+     One @"HTTP/1.0"
+     OneDotOne @"HTTP/1.1")))
+
   (deftype HttpVerb
    GET
    POST
@@ -42,7 +52,7 @@
      (NOT_HANDLED)))
 
    (defn str [verb]
-    (match @verb
+    (match-ref verb
      GET @"GET"
      POST @"POST"
      DELETE @"DELETE"

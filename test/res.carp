@@ -9,6 +9,11 @@
 (deftest test
  (assert-equal test
   "HTTP/1.1 200 OK\r\nServer: Carp\r\n\r\nHello"
-  &(Res.str &(Res.init (HttpStatus.Ok) @V11 {@"Server" [@"Carp"]} @"Hello"))
-  "Parse verb"))
+  &(Res.str &(Res.init (HttpStatus.Ok) (HttpVersion.OneDotOne) {@"Server" [@"Carp"]} @"Hello"))
+  "Builds a response")
+
+ (assert-equal test
+  "HTTP/1.1 200 OK\r\n\r\nHello"
+  &(Res.str &(Res.init (HttpStatus.Ok) (HttpVersion.OneDotOne) {} @"Hello"))
+  "Builds a response without headers"))
 

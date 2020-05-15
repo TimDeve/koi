@@ -3,7 +3,7 @@
 (use Koi)
 
 (deftype Res [status HttpStatus
-              version String
+              version HttpVersion
               headers (Map String (Array String))
               body String])
 
@@ -12,7 +12,7 @@
   (defn send [status content-type body]
    (Res.init
      status
-     @"HTTP/1.1"
+     (HttpVersion.OneDotOne)
      {@"Server" [@"Carp"]
       @"Content-Type" [content-type]
       @"Content-Length" [(str (length &body))]}
@@ -22,7 +22,7 @@
   (defn found [uri]
    (Res.init
      (HttpStatus.Found)
-     @"HTTP/1.1"
+     (HttpVersion.OneDotOne)
      {@"Server" [@"Carp"]
       @"Location" [uri]
       @"Content-Length" [@"0"]}
@@ -39,7 +39,7 @@
 
   (defn str [res]
     (fmt "%s %d %s%s\r\n\r\n%s"
-         (version res)
+         &(HttpVersion.str (version res))
          (HttpStatus.code (status res))
          &(HttpStatus.message (status res))
          &(str-headers res)
