@@ -1,3 +1,14 @@
+(load "deps.carp")
+(load "models.carp")
+
+(use Koi)
+
+(deftype Req [verb HttpVerb
+              version String
+              uri URI
+              headers (Map String (Array String))
+              body String])
+
 (defmodule Req
   (defn plus-to-space [s]
    (Pattern.substitute #"+" s " " -1))
@@ -12,5 +23,27 @@
 
   (defmacro struct-from-form [t s]
     (list 'match (list 'Req.params-from-form s)
-      (list 'Result.Success 'm) (list 'Result.Success (list 'Sheriff.unmarshall t (list 'ref 'm)))
-      (list 'Result.Error 'e) (list 'Result.Error 'e))))
+      (list 'Result.Success 'm) (list 'Result.Success (list 'Sheriff.KV.unmarshall t (list 'ref 'm)))
+      (list 'Result.Error 'e) (list 'Result.Error 'e)))
+
+  (defn path [r]
+    (Maybe.apply @(URI.path (Req.uri r))
+                 &(fn [p] (String.append "/" &p))))
+
+  (defn parse [s]
+    (let [head-body (Pattern.split #"\r\n\r\n" s) 
+          head (unsafe-nth &head-body 0)
+          body (unsafe-nth &head-body 1)
+          lines (Pattern.split #"\r\n" head)]
+      (let [first-line (words (unsafe-nth &lines 0))
+            verb-str (unsafe-nth &first-line 0)
+            path-str (unsafe-nth &first-line 1)
+            version-str (unsafe-nth &first-line 2)]
+       (match (URI.parse path-str)
+        (Result.Error err) (Result.Error err)
+        (Result.Success u) (Result.Success
+                            (Req.init (HttpVerb.parse verb-str)
+                                      @version-str
+                                      u
+                                      {}
+                                      @body)))))))

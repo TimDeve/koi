@@ -7,19 +7,19 @@
 (use Socket)
 
 (defmodule Koi
-  (sig not-found (Fn [Request] Response))
+  (sig not-found (Fn [Req] Res))
   (defn not-found [req]
     (Res.send (HttpStatus.NotFound)
               @"text/html"
               @"<h1>Not Found</h1>"))
 
-  (sig internal-server-error (Fn [Request] Response))
+  (sig internal-server-error (Fn [Req] Res))
   (defn internal-server-error [req]
     (Res.send (HttpStatus.InternalServerError)
               @"text/html"
               @"<h1>Internal Server Error</h1>"))
 
-  (sig bad-request (Fn [] Response))
+  (sig bad-request (Fn [] Res))
   (defn bad-request []
     (Res.send (HttpStatus.BadRequest)
               @"text/plain"
@@ -27,10 +27,10 @@
 
   (hidden get-handler-from-routes)
   (private get-handler-from-routes)
-  (sig get-handler-from-routes (Fn [(Ref Request) (Array Route)] (Fn [Request] Response)))
+  (sig get-handler-from-routes (Fn [(Ref Req) (Array Route)] (Fn [Req] Res)))
   (defn get-handler-from-routes [req routes]
-    (let [verb (HttpVerb.parse (Request.verb req))
-          path (URI.str (Request.uri req))]
+    (let [verb @(Req.verb req)
+          path (URI.str (Req.uri req))]
      (match (Array.find
              &(fn [route]
                (and
@@ -42,9 +42,9 @@
 
   (hidden get-res-from-routes)
   (private get-res-from-routes)
-  (sig get-res-from-routes (Fn [String (Array Route)] Response))
+  (sig get-res-from-routes (Fn [String (Array Route)] Res))
   (defn get-res-from-routes [req-str routes]
-    (match (Request.parse &req-str)
+    (match (Req.parse &req-str)
       (Result.Success req) ((get-handler-from-routes &req routes) req)
       (Result.Error _)     (bad-request)))
 
@@ -57,7 +57,7 @@
           (let-do [req (read &client)]
             (println* &(fmt "---REQUEST---\n%s" &req))
             (send &client &(let-do [res     (get-res-from-routes req @routes)
-                                    res-str (Response.str &res)]
+                                    res-str (Res.str &res)]
                              (println* &(fmt "---RESPONSE---\n%s" &res-str))
                              res-str))))))))
 

@@ -2,24 +2,17 @@
 
 (use Koi)
 
+(deftype Res [status HttpStatus
+              version String
+              headers (Map String (Array String))
+              body String])
+
 (defmodule Res
   (sig send (Fn [HttpStatus String String] Response))
   (defn send [status content-type body]
-   (Response.init
-     (match status
-      HttpStatus.Ok 200
-      HttpStatus.NotFound 404
-      HttpStatus.BadRequest 400
-      HttpStatus.Found 302
-      HttpStatus.InternalServerError 500)
-     (match status
-      HttpStatus.Ok @"OK"
-      HttpStatus.NotFound @"Not Found"
-      HttpStatus.BadRequest @"Bad Request"
-      HttpStatus.Found @"Found"
-      HttpStatus.InternalServerError @"Internal Server Error")
+   (Res.init
+     status
      @"HTTP/1.1"
-     []
      {@"Server" [@"Carp"]
       @"Content-Type" [content-type]
       @"Content-Length" [(str (length &body))]}
@@ -27,12 +20,27 @@
 
   (sig found (Fn [String] Response))
   (defn found [uri]
-   (Response.init
-     302
-     @"Found"
+   (Res.init
+     (HttpStatus.Found)
      @"HTTP/1.1"
-     []
      {@"Server" [@"Carp"]
       @"Location" [uri]
       @"Content-Length" [@"0"]}
-     @"")))
+     @""))
+
+  (defn str-headers [r]
+   (Map.kv-reduce
+     &(fn [acc k v]
+       (fmt "%s\r\n%s"
+            &acc
+            &(join "\r\n" &(Array.copy-map &(fn [x] (fmt "%s: %s" k x)) v))))
+     @""
+     (headers r)))
+
+  (defn str [res]
+    (fmt "%s %d %s%s\r\n\r\n%s"
+         (version res)
+         (HttpStatus.code (status res))
+         &(HttpStatus.message (status res))
+         &(str-headers res)
+         (body res))))

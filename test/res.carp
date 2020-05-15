@@ -1,0 +1,14 @@
+(Debug.sanitize-addresses)
+
+(load "Test.carp")
+(load "../koi.carp")
+
+(use Test)
+(use Koi)
+
+(deftest test
+ (assert-equal test
+  "HTTP/1.1 200 OK\r\nServer: Carp\r\n\r\nHello"
+  &(Res.str &(Res.init (HttpStatus.Ok) @V11 {@"Server" [@"Carp"]} @"Hello"))
+  "Parse verb"))
+

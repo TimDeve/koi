@@ -7,28 +7,28 @@
 (defmodule TodoDomain
   (defn path-prefix [s] (String.concat &[@"/todos" @s]))
 
-  (sig get-todos-handler (Fn [Request] Response))
+  (sig get-todos-handler (Fn [Req] Res))
   (defn get-todos-handler [req]
     (Res.send (HttpStatus.Ok)
               @"text/html"
               (Template.todos-page-html &todos-db)))
 
-  (sig add-todo-handler (Fn [Request] Response))
+  (sig add-todo-handler (Fn [Req] Res))
   (defn add-todo-handler [req]
-    (match (Req.params-from-form (Request.body &req))
+    (match (Req.params-from-form (Req.body &req))
       (Result.Success q) (do
                           (push-back! &todos-db (Map.get &q "description"))
                           (Res.found (path-prefix "")))
       (Result.Error e) (bad-request)))
 
-  (sig remove-todo-handler (Fn [Request] Response))
+  (sig remove-todo-handler (Fn [Req] Res))
   (defn remove-todo-handler [req]
-    (match (Req.params-from-form (Request.body &req))
+    (match (Req.params-from-form (Req.body &req))
       (Result.Success q) (do
                           (set!
                             todos-db
                             (Array.remove-nth
-                              (Int.from-string &(Map.get &q "id"))
+                              (unsafe-from (Int.from-string &(Map.get &q "id")))
                               @&todos-db))
                           (Res.found (path-prefix "")))
       (Result.Error e) (bad-request)))

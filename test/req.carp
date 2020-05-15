@@ -1,0 +1,31 @@
+(Debug.sanitize-addresses)
+
+(load "Test.carp")
+(load "../koi.carp")
+
+(use Test)
+(use Koi)
+
+(def http-request "POST https://www.example.com/path/one HTTP/1.1\r\n\r\nA body")
+
+(deftest test
+ (assert-equal test
+  "/path/one"
+  &(unsafe-from (Req.path &(unsafe-from-success (Req.parse http-request))))
+  "Parse path")
+
+ (assert-equal test
+  &(HttpVerb.POST)
+  (Req.verb &(unsafe-from-success (Req.parse http-request)))
+  "Parse verb")
+
+ (assert-equal test
+  &@V11
+  (Req.version &(unsafe-from-success (Req.parse http-request)))
+  "Parse version")
+
+ (assert-equal test
+  "A body"
+  (Req.body &(unsafe-from-success (Req.parse http-request)))
+  "Parse body"))
+

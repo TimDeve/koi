@@ -1,10 +1,31 @@
 (defmodule Koi
+  (def V1 "HTTP/1.0")
+
+  (def V11 "HTTP/1.1")
+
   (deftype HttpStatus
     Ok
     NotFound
     BadRequest
     Found
     InternalServerError)
+
+  (defmodule HttpStatus
+   (defn message [status]
+     (match-ref status
+      Ok @"OK"
+      NotFound @"Not Found"
+      BadRequest @"Bad Request"
+      Found @"Found"
+      InternalServerError @"Internal Server Error"))
+
+   (defn code [status]
+     (match-ref status
+      Ok 200
+      NotFound 404
+      BadRequest 400
+      Found 302
+      InternalServerError 500)))
 
   (deftype HttpVerb
    GET
@@ -34,7 +55,8 @@
      DELETE 3
      NOT_HANDLED 4))
 
+   (implements = =)
    (defn = [a b]
-    (Int.= (to-int a) (to-int b))))
+    (Int.= (Koi.HttpVerb.to-int a) (Koi.HttpVerb.to-int b))))
 
-  (deftype Route [verb HttpVerb path String handler (Fn [Request] Response)]))
+  (deftype Route [verb HttpVerb path String handler (Fn [Req] Res)]))
