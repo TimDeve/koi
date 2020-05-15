@@ -1,8 +1,8 @@
-(load "deps.carp")
+(load "src/deps.carp")
 
-(load "models.carp")
-(load "res.carp")
-(load "req.carp")
+(load "src/models.carp")
+(load "src/res.carp")
+(load "src/req.carp")
 
 (use Socket)
 
