@@ -1,8 +1,10 @@
-pre-push: tests build-example
+.PHONY: pre-push build-example test
+
+pre-push: build-example test
 
 build-example:
 	carp -b example.carp
 
-tests:
+test:
 	./test.sh
 
