@@ -13,9 +13,15 @@
            .container {
              max-width: 500px;
              margin: 50px auto 0 auto;
-             padding: 10px 20px;
+             padding: 5px 20px;
              border-radius: 8px;
-             box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+             box-shadow: 0px 0px 0px 0.5px rgba(0, 0, 0, 0.04),
+                         0 0.6px 2.9px -40px rgba(0, 0, 0, 0.079),
+                         0 1.4px 7px -40px rgba(0, 0, 0, 0.113),
+                         0 2.6px 13.3px -40px rgba(0, 0, 0, 0.14),
+                         0 4.7px 23.7px -40px rgba(0, 0, 0, 0.167),
+                         0 8.8px 44.3px -40px rgba(0, 0, 0, 0.201),
+                         0 21px 106px -40px rgba(0, 0, 0, 0.28)
            }
 
            .add-todo-form input {
