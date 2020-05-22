@@ -48,7 +48,7 @@
       (Result.Success req) ((get-handler-from-routes &req routes) req)
       (Result.Error _)     (bad-request)))
 
-  (sig serve (Fn [String Int &(Array Route)] ()))
+  (sig serve (Fn [(Ref String) Int &(Array Route)] ()))
   (defn serve [ip port routes]
     (do
       (println* (fmt "Listening on %s:%i" ip port))

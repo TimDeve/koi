@@ -8,7 +8,7 @@
               body String])
 
 (defmodule Res
-  (sig send (Fn [HttpStatus String String] Response))
+  (sig send (Fn [HttpStatus String String] Res))
   (defn send [status content-type body]
    (Res.init
      status
@@ -18,7 +18,7 @@
       @"Content-Length" [(str (length &body))]}
      body))
 
-  (sig found (Fn [String] Response))
+  (sig found (Fn [String] Res))
   (defn found [uri]
    (Res.init
      (HttpStatus.Found)
