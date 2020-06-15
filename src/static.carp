@@ -1,4 +1,10 @@
 (defmodule Koi
+  (defn get-mime [path]
+    (let [ext (Array.unsafe-last &(Pattern.split #"\." path))]
+      (match (Mime.get-mime &ext)
+        (Maybe.Just mime) mime
+        Maybe.Nothing @"application/octet-stream")))
+
   (defn create-static-handler [file]
     (let [file-copy @file]
       (fn [req]
@@ -10,7 +16,7 @@
               (do
                 (File.close f)
                 (Res.send (HttpStatus.Ok)
-                          @"text/plain"
+                          (get-mime &file-copy)
                           file-content))
               (Result.Error err)
               (do
