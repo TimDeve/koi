@@ -1,0 +1,41 @@
+(defmodule Koi
+  (defn create-static-handler [file]
+    (let [file-copy @file]
+      (fn [req]
+        (match (File.open &file-copy)
+          (Result.Success f)
+          (do
+            (match (File.read-all &f)
+              (Result.Success file-content)
+              (do
+                (File.close f)
+                (Res.send (HttpStatus.Ok)
+                          @"text/plain"
+                          file-content))
+              (Result.Error err)
+              (do
+                (File.close f)
+                (IO.errorln &err)
+                (Res.send (HttpStatus.InternalServerError)
+                          @"text/html"
+                          @"<h1>Internal Server Error</h1>"))))
+          (Result.Error err)
+          (do
+            (IO.errorln &err)
+            (Res.send (HttpStatus.NotFound)
+                      @"text/html"
+                      @"<h1>Not Found</h1>"))))))
+
+  (sig static (Fn [(Ref String)] (Array Route)))
+  (defn static [path]
+   (match (File.map path
+                    &(fn [file]
+                        (Route.init
+                          (HttpVerb.GET)
+                          (String.append "/static" &(String.slice file (String.length path) (String.length file)))
+                          (create-static-handler file))))
+      (Result.Success files) files
+      (Result.Error err) (do
+                           (IO.errorln &(fmt "Failed to open static folder '%s'" path))
+                           (System.exit 1)
+                           []))))

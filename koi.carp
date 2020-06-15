@@ -3,6 +3,7 @@
 (load "src/models.carp")
 (load "src/res.carp")
 (load "src/req.carp")
+(load "src/static.carp")
 
 (use Socket)
 
@@ -48,16 +49,25 @@
       (Result.Success req) ((get-handler-from-routes &req routes) req)
       (Result.Error _)     (bad-request)))
 
-  (sig serve (Fn [(Ref String) Int &(Array Route)] ()))
+  (hidden print-registered-routes)
+  (private print-registered-routes)
+  (sig print-registered-routes (Fn [&(Array Route)] ()))
+  (defn print-registered-routes [routes]
+    (do
+      (println* "Registered routes:")
+      (foreach [route routes]
+       (println* route))))
+
+  (sig serve (Fn [(Ref String) Int (Array Route)] ()))
   (defn serve [ip port routes]
     (do
+      (print-registered-routes &routes)
       (println* (fmt "Listening on %s:%i" ip port))
       (Socket.with-server server ip port
         (Socket.while-connection &server client
           (let-do [req (read &client)]
             (println* &(fmt "---REQUEST---\n%s" &req))
-            (send &client &(let-do [res     (get-res-from-routes req @routes)
+            (send &client &(let-do [res     (get-res-from-routes req @&routes)
                                     res-str (Res.str &res)]
                              (println* &(fmt "---RESPONSE---\n%s" &res-str))
                              res-str))))))))
-
