@@ -1,0 +1,18 @@
+(relative-include "thread.h")
+
+(register-type Mutex "pthread_mutex_t")
+(defmodule Mutex
+  (register init (Fn [] Mutex) "Mutex_init")
+  (register lock (Fn [(Ref Mutex)] Int) "pthread_mutex_lock")
+  (register try-lock (Fn [(Ref Mutex)] Int) "pthread_mutex_trylock")
+  (register unlock (Fn [(Ref Mutex)] Int) "pthread_mutex_unlock"))
+
+(deftype Client [sock Socket])
+
+(deftype Pool [mutex Mutex clients (Array Client) routes (Array Route)])
+
+(register-type Thread "pthread_t")
+(defmodule Thread
+  (register init (Fn [] Thread) "Thread_init")
+  (register create (Fn [(Ref Thread) (Ptr Int) (Ref (Fn [(Ref Pool)] ())) (Ref Pool)] Int) "Thread_create"))
+

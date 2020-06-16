@@ -1,0 +1,2 @@
+(defmacro void [form]
+  (list 'let [(gensym) form] ()))

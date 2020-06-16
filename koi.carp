@@ -1,11 +1,19 @@
 (load "src/deps.carp")
 
 (load "src/models.carp")
+(load "src/void.carp")
+(load "src/thread.carp")
 (load "src/res.carp")
 (load "src/req.carp")
 (load "src/static.carp")
 
 (use Socket)
+
+(defmodule Unsafe
+  (defn unsafe-deref [r]
+    (Pointer.to-value
+      (the (Ptr a)
+           (Unsafe.coerce (the (Ref a) r))))))
 
 (defmodule Koi
   (sig not-found (Fn [Req] Res))
@@ -58,16 +66,40 @@
       (foreach [route routes]
        (println* route))))
 
-  (sig serve (Fn [(Ref String) Int (Array Route)] ()))
-  (defn serve [ip port routes]
-    (do
-      (print-registered-routes &routes)
-      (println* (fmt "Listening on %s:%i" ip port))
-      (Socket.with-server server ip port
-        (Socket.while-connection &server client
-          (let-do [req (read &client)]
-            (println* &(fmt "---REQUEST---\n%s" &req))
-            (send &client &(let-do [res     (get-res-from-routes req @&routes)
+  (defn-do serve-client [pool]
+    (while true
+      (do
+        (void (Mutex.lock (Pool.mutex pool)))
+        (if (> (Array.length (Pool.clients pool)) 0)
+          (let-do [client (Array.pop-back! (Pool.clients pool))
+                   routes @(Pool.routes pool)
+                   sock (Unsafe.unsafe-deref (Client.sock &client))
+                   _ (Unsafe.leak client)]
+            (void (Mutex.unlock (Pool.mutex pool)))
+            (let-do [req (read &sock)]
+              (println* &(fmt "---REQUEST---\n%s" &req))
+              (send &sock &(let-do [res     (get-res-from-routes req routes)
                                     res-str (Res.str &res)]
                              (println* &(fmt "---RESPONSE---\n%s" &res-str))
-                             res-str))))))))
+                             res-str)))
+            (Socket.close sock))
+          (do
+            (void (Mutex.unlock (Pool.mutex pool)))
+            (System.sleep-micros 100))))))
+
+  (sig serve (Fn [(Ref String) Int (Array Route)] ()))
+  (defn-do serve [ip port routes]
+    (print-registered-routes &routes)
+    (println* (fmt "Listening on %s:%i" ip port))
+    (Socket.with-server server ip port
+      (let-do  [pool (Pool.init (Mutex.init) [] @&routes)
+                one (Thread.create &(Thread.init) NULL &serve-client &pool)
+                two (Thread.create &(Thread.init) NULL &serve-client &pool)
+                three (Thread.create &(Thread.init) NULL &serve-client &pool)
+                four (Thread.create &(Thread.init) NULL &serve-client &pool)]
+        (listen &server)
+        (while true
+         (let-do [client (accept &server)]
+          (void (Mutex.lock (Pool.mutex &pool)))
+          (Array.push-back! (Pool.clients &pool) (Client.init client))
+          (void (Mutex.unlock (Pool.mutex &pool)))))))))
