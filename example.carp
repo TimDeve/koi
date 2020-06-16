@@ -1,4 +1,4 @@
-(Debug.sanitize-addresses)
+;(Debug.sanitize-addresses)
 (Project.config "title" "koi-example")
 
 (load "git@github.com:TimDeve/hoquet@v0.1.1")

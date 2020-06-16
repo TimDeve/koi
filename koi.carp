@@ -1,3 +1,4 @@
+(Project.config "cflag" "-pthread")
 (load "src/deps.carp")
 
 (load "src/models.carp")
@@ -71,10 +72,11 @@
       (do
         (void (Mutex.lock (Pool.mutex pool)))
         (if (> (Array.length (Pool.clients pool)) 0)
-          (let-do [client (Array.pop-back! (Pool.clients pool))
+          (let-do [client (Array.unsafe-first (Pool.clients pool))
                    routes (Pool.routes pool)
                    sock (Unsafe.unsafe-deref (Client.sock &client))
                    _ (Unsafe.leak client)]
+            (Pool.set-clients! pool (Array.suffix (Pool.clients pool) 1))
             (void (Mutex.unlock (Pool.mutex pool)))
             (let-do [req (read &sock)]
               (println* &(fmt "---REQUEST---\n%s" &req))
