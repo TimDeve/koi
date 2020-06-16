@@ -36,7 +36,7 @@
 
   (hidden get-handler-from-routes)
   (private get-handler-from-routes)
-  (sig get-handler-from-routes (Fn [(Ref Req) (Array Route)] (Fn [Req] Res)))
+  (sig get-handler-from-routes (Fn [(Ref Req) (Ref (Array Route))] (Fn [Req] Res)))
   (defn get-handler-from-routes [req routes]
     (let [verb @(Req.verb req)
           path (URI.str (Req.uri req))]
@@ -45,13 +45,13 @@
                (and
                 (= &verb (Route.verb route))
                 (= &path (Route.path route))))
-             &routes)
+             routes)
       (Maybe.Just route) @(Route.handler &route)
       (Maybe.Nothing)    not-found)))
 
   (hidden get-res-from-routes)
   (private get-res-from-routes)
-  (sig get-res-from-routes (Fn [String (Array Route)] Res))
+  (sig get-res-from-routes (Fn [String (Ref (Array Route))] Res))
   (defn get-res-from-routes [req-str routes]
     (match (Req.parse &req-str)
       (Result.Success req) ((get-handler-from-routes &req routes) req)
@@ -72,7 +72,7 @@
         (void (Mutex.lock (Pool.mutex pool)))
         (if (> (Array.length (Pool.clients pool)) 0)
           (let-do [client (Array.pop-back! (Pool.clients pool))
-                   routes @(Pool.routes pool)
+                   routes (Pool.routes pool)
                    sock (Unsafe.unsafe-deref (Client.sock &client))
                    _ (Unsafe.leak client)]
             (void (Mutex.unlock (Pool.mutex pool)))
@@ -90,14 +90,14 @@
   (sig serve (Fn [(Ref String) Int (Array Route)] ()))
   (defn-do serve [ip port routes]
     (print-registered-routes &routes)
-    (println* (fmt "Listening on %s:%i" ip port))
     (Socket.with-server server ip port
-      (let-do  [pool (Pool.init (Mutex.init) [] @&routes)
+      (let-do  [pool (Pool.init (Mutex.init) [] routes)
                 one (Thread.create &(Thread.init) NULL &serve-client &pool)
                 two (Thread.create &(Thread.init) NULL &serve-client &pool)
                 three (Thread.create &(Thread.init) NULL &serve-client &pool)
                 four (Thread.create &(Thread.init) NULL &serve-client &pool)]
         (listen &server)
+        (println* (fmt "Listening on %s:%i" ip port))
         (while true
          (let-do [client (accept &server)]
           (void (Mutex.lock (Pool.mutex &pool)))
