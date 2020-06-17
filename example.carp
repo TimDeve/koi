@@ -1,4 +1,3 @@
-;(Debug.sanitize-addresses)
 (Project.config "title" "koi-example")
 
 (load "git@github.com:TimDeve/hoquet@v0.1.1")
@@ -102,5 +101,5 @@
    (Route.init (HttpVerb.POST) @"/submit" post-example-handler)])
 
 (defn main []
-  (serve "localhost" 8090 (Array.concat &[(routes) (TodoDomain.routes) (static "example-src/static")])))
+  (serve "localhost" 8099 (Array.concat &[(routes) (TodoDomain.routes) (static "example-src/static")])))
 

@@ -1,18 +1,51 @@
 (relative-include "thread.h")
 
+(defmodule Unsafe
+  (defn unsafe-deref [r]
+    (Pointer.to-value
+      (the (Ptr a)
+           (Unsafe.coerce (the (Ref a) r))))))
+
 (register-type Mutex "pthread_mutex_t")
 (defmodule Mutex
   (register init (Fn [] Mutex) "Mutex_init")
-  (register lock (Fn [(Ref Mutex)] Int) "pthread_mutex_lock")
-  (register try-lock (Fn [(Ref Mutex)] Int) "pthread_mutex_trylock")
-  (register unlock (Fn [(Ref Mutex)] Int) "pthread_mutex_unlock"))
+  (register lock-c (Fn [(Ref Mutex)] Int) "pthread_mutex_lock")
+  (defn lock [mutex]
+    (= (lock-c mutex) 0))
+  (register try-lock-c (Fn [(Ref Mutex)] Int) "pthread_mutex_trylock")
+  (defn try-lock [mutex]
+    (= (try-lock-c mutex) 0))
+  (register unlock-c (Fn [(Ref Mutex)] Int) "pthread_mutex_unlock")
+  (defn unlock [mutex]
+    (= (unlock-c mutex) 0)))
 
 (deftype Client [sock Socket])
 
 (deftype Pool [mutex Mutex clients (Array Client) routes (Array Route)])
+(defmodule Pool
+  (defn get-routes [pool]
+    (let [lock (Mutex.lock (Pool.mutex pool))
+          routes @(Pool.routes pool)
+          unlock (Mutex.unlock (Pool.mutex pool))]
+      routes))
+
+  (defn pop-client-sock [pool]
+    (do
+     (void (Mutex.lock (Pool.mutex pool)))
+     (if (> (Array.length (Pool.clients pool)) 0)
+       (let-do [client (Array.unsafe-first (Pool.clients pool))
+                sock (Unsafe.unsafe-deref (Client.sock &client))
+                _ (Unsafe.leak client)]
+         (Pool.set-clients! pool (Array.suffix (Pool.clients pool) 1))
+         (void (Mutex.unlock (Pool.mutex pool)))
+         (Maybe.Just sock))
+       (do
+         (void (Mutex.unlock (Pool.mutex pool)))
+         (Maybe.Nothing))))))
 
 (register-type Thread "pthread_t")
 (defmodule Thread
   (register init (Fn [] Thread) "Thread_init")
-  (register create (Fn [(Ref Thread) (Ptr Int) (Ref (Fn [(Ref Pool)] ())) (Ref Pool)] Int) "Thread_create"))
+  (register create (Fn [(Ref Thread) (Ref (Fn [(Ref Pool)] ())) (Ref Pool)] Bool) "Thread_create"))
 
+(register get-cpu-count (Fn [] Int) "Thread_getcpucount")

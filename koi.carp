@@ -10,12 +10,6 @@
 
 (use Socket)
 
-(defmodule Unsafe
-  (defn unsafe-deref [r]
-    (Pointer.to-value
-      (the (Ptr a)
-           (Unsafe.coerce (the (Ref a) r))))))
-
 (defmodule Koi
   (sig not-found (Fn [Req] Res))
   (defn not-found [req]
@@ -68,36 +62,33 @@
        (println* route))))
 
   (defn-do serve-client [pool]
-    (while true
-      (do
-        (void (Mutex.lock (Pool.mutex pool)))
-        (if (> (Array.length (Pool.clients pool)) 0)
-          (let-do [client (Array.unsafe-first (Pool.clients pool))
-                   routes (Pool.routes pool)
-                   sock (Unsafe.unsafe-deref (Client.sock &client))
-                   _ (Unsafe.leak client)]
-            (Pool.set-clients! pool (Array.suffix (Pool.clients pool) 1))
-            (void (Mutex.unlock (Pool.mutex pool)))
-            (let-do [req (read &sock)]
-              (println* &(fmt "---REQUEST---\n%s" &req))
-              (send &sock &(let-do [res     (get-res-from-routes req routes)
-                                    res-str (Res.str &res)]
-                             (println* &(fmt "---RESPONSE---\n%s" &res-str))
-                             res-str)))
-            (Socket.close sock))
-          (do
-            (void (Mutex.unlock (Pool.mutex pool)))
-            (System.sleep-micros 100))))))
+    (let [routes (Pool.get-routes pool)]
+      (while true
+        (match (Pool.pop-client-sock pool)
+          Maybe.Nothing (System.sleep-micros 100)
+          (Maybe.Just client)
+          (let-do [req (read &client)]
+            (println* &(fmt "---REQUEST---\n%s" &req))
+            (let-do [res (Res.str &(get-res-from-routes req &routes))]
+              (println* &(fmt "---RESPONSE---\n%s" &res))
+              (send &client &res))
+            (Socket.close client))))))
+
+  (defn spawn-threads [thread-count pool callback]
+   (for [i 1 (inc thread-count)]
+    (let-do [success (Thread.create &(Thread.init) callback pool)]
+      (if success
+        (println* &(fmt "Created worker thread %i" i))
+        (do
+           (IO.errorln &(fmt "Failed to create worker thread %i" i))
+           (System.exit 1))))))
 
   (sig serve (Fn [(Ref String) Int (Array Route)] ()))
   (defn-do serve [ip port routes]
     (print-registered-routes &routes)
     (Socket.with-server server ip port
-      (let-do  [pool (Pool.init (Mutex.init) [] routes)
-                one (Thread.create &(Thread.init) NULL &serve-client &pool)
-                two (Thread.create &(Thread.init) NULL &serve-client &pool)
-                three (Thread.create &(Thread.init) NULL &serve-client &pool)
-                four (Thread.create &(Thread.init) NULL &serve-client &pool)]
+      (let-do  [pool (Pool.init (Mutex.init) [] routes)]
+        (spawn-threads (get-cpu-count) &pool &serve-client)
         (listen &server)
         (println* (fmt "Listening on %s:%i" ip port))
         (while true

@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <pthread.h>
 
 pthread_mutex_t Mutex_init() {
@@ -16,8 +17,16 @@ pthread_t Thread_init() {
   return thread;
 }
 
-int Thread_create(pthread_t *thread, const pthread_attr_t *attr, Lambda *lamb, void *arg) {
-  int result = pthread_create(thread, attr, lamb->callback, arg);
+bool Thread_create(pthread_t *thread, Lambda *lamb, void *arg) {
+  int result = pthread_create(thread, NULL, lamb->callback, arg);
 
-  return result;
+  return result == 0;
+}
+
+int Thread_getcpucount() {
+#ifdef _SC_NPROCESSORS_ONLN
+  return sysconf(_SC_NPROCESSORS_ONLN);
+#else
+  return 2;
+#endif
 }
