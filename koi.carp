@@ -59,7 +59,7 @@
     (do
       (Clog.info "Registered routes:")
       (foreach [route routes]
-       (Clog.info route))))
+       (Clog.info (fmt "  %s" &(str route))))))
 
   (defn-do serve-client [pool]
     (let [routes (Pool.get-routes pool)]

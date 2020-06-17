@@ -1,4 +1,4 @@
-(load "koi.carp")
+(load "git@github.com:TimDeve/koi@master")
 
 (use Koi)
 
