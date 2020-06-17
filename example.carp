@@ -12,25 +12,6 @@
 
 (deftype PersonalInfo [age Int name String])
 
-(defn css []
- (with Elements
-   (style {@"type" @"text/css"}
-     [@"
-       body {
-         color: #EEE;
-         background-color: #111;
-         font-family: sans-serif;
-       }
-
-       a {
-        color: rgb(101, 111, 253);
-       }
-
-       a:visited {
-        color: rgb(192, 158, 255);
-       }
-     "])))
-
 (defn a-form []
  (with Elements
   (form
@@ -50,7 +31,7 @@
     [(head {}
       [(title {} [@"Hello Carp"])
        (meta {@"charset" @"UTF-8"})
-       (css)])
+       (link {@"href" @"/static/index.css" @"rel" @"stylesheet"})])
      (body {} body-content)])))
 
 (sig root-handler (Fn [Req] Res))

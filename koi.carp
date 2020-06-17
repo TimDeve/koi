@@ -74,7 +74,7 @@
               (send &client &res))
             (Socket.close client))))))
 
-  (defn spawn-threads [thread-count pool callback]
+  (defn spawn-worker-threads [thread-count pool callback]
    (for [i 1 (inc thread-count)]
     (let-do [success (Thread.create &(Thread.init) callback pool)]
       (if success
@@ -83,16 +83,29 @@
            (IO.errorln &(fmt "Failed to create worker thread %i" i))
            (System.exit 1))))))
 
+  (defn get-worker-count []
+    (match (IO.getenv @"KOI_WORKER_COUNT")
+      Maybe.Nothing (get-cpu-count)
+      (Maybe.Just count-str)
+      (match (Int.from-string &count-str)
+        (Maybe.Just count)
+        (if (> count 0)
+          count
+          (do
+             (IO.errorln &(fmt "Worker count supplied is too low: %s" &count-str))
+             (System.exit 1)))
+        Maybe.Nothing
+        (do
+           (IO.errorln &(fmt "Worker count supplied is not a valid number: %s" &count-str))
+           (System.exit 1)))))
+
   (sig serve (Fn [(Ref String) Int (Array Route)] ()))
   (defn-do serve [ip port routes]
     (print-registered-routes &routes)
     (Socket.with-server server ip port
       (let-do  [pool (Pool.init (Mutex.init) [] routes)]
-        (spawn-threads (get-cpu-count) &pool &serve-client)
+        (spawn-worker-threads (get-worker-count) &pool &serve-client)
         (listen &server)
         (println* (fmt "Listening on %s:%i" ip port))
         (while true
-         (let-do [client (accept &server)]
-          (void (Mutex.lock (Pool.mutex &pool)))
-          (Array.push-back! (Pool.clients &pool) (Client.init client))
-          (void (Mutex.unlock (Pool.mutex &pool)))))))))
+          (Pool.push-client-sock &pool (accept &server)))))))

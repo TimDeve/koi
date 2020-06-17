@@ -29,6 +29,12 @@
           unlock (Mutex.unlock (Pool.mutex pool))]
       routes))
 
+  (defn push-client-sock [pool client-sock]
+    (do
+      (void (Mutex.lock (Pool.mutex pool)))
+      (Array.push-back! (Pool.clients pool) (Client.init client-sock))
+      (void (Mutex.unlock (Pool.mutex pool)))))
+
   (defn pop-client-sock [pool]
     (do
      (void (Mutex.lock (Pool.mutex pool)))
