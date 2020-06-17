@@ -57,18 +57,18 @@
   (sig print-registered-routes (Fn [&(Array Route)] ()))
   (defn print-registered-routes [routes]
     (do
-      (println* "Registered routes:")
+      (Clog.info "Registered routes:")
       (foreach [route routes]
-       (println* route))))
+       (Clog.info route))))
 
   (defn-do serve-client [pool]
     (let [routes (Pool.get-routes pool)]
       (while true
         (let [client (Pool.pop-client-sock pool)]
           (let-do [req (read &client)]
-            (println* &(fmt "---REQUEST---\n%s" &req))
+            (Clog.debug &(fmt "---REQUEST---\n%s" &req))
             (let-do [res (Res.str &(get-res-from-routes req &routes))]
-              (println* &(fmt "---RESPONSE---\n%s" &res))
+              (Clog.debug &(fmt "---RESPONSE---\n%s" &res))
               (send &client &res))
             (Socket.close client))))))
 
@@ -76,10 +76,8 @@
    (for [i 1 (inc thread-count)]
     (let-do [success (Thread.create &(Thread.init) callback pool)]
       (if success
-        (println* &(fmt "Created worker thread %i" i))
-        (do
-           (IO.errorln &(fmt "Failed to create worker thread %i" i))
-           (System.exit 1))))))
+        (Clog.info &(fmt "Created worker thread %i" i))
+        (Clog.fatal &(fmt "Failed to create worker thread %i" i))))))
 
   (defn get-worker-count []
     (match (IO.getenv @"KOI_WORKER_COUNT")
@@ -89,13 +87,9 @@
         (Maybe.Just count)
         (if (> count 0)
           count
-          (do
-             (IO.errorln &(fmt "Worker count supplied is too low: %s" &count-str))
-             (System.exit 1)))
+          (Clog.fatal &(fmt "Worker count supplied is too low: %s" &count-str)))
         Maybe.Nothing
-        (do
-           (IO.errorln &(fmt "Worker count supplied is not a valid number: %s" &count-str))
-           (System.exit 1)))))
+        (Clog.fatal &(fmt "Worker count supplied is not a valid number: %s" &count-str)))))
 
   (sig serve (Fn [(Ref String) Int (Array Route)] ()))
   (defn-do serve [ip port routes]
@@ -104,6 +98,6 @@
       (let-do  [pool (Pool.new routes)]
         (spawn-worker-threads (get-worker-count) &pool &serve-client)
         (listen &server)
-        (println* (fmt "Listening on %s:%i" ip port))
+        (Clog.info (fmt "Listening on %s:%i" ip port))
         (while true
           (Pool.push-client-sock &pool (accept &server)))))))

@@ -3,4 +3,5 @@
 (load "git@github.com:carpentry-org/file@0.1.1")
 (load "git@github.com:TimDeve/sheriff@v0.2.3")
 (load "git@github.com:TimDeve/mime@v0.0.1")
+(load "git@github.com:TimDeve/clog@v0.1.0")
 

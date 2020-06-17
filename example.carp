@@ -73,7 +73,7 @@
                           (update-name-and-age! inf)
                           (Res.found @"/"))
     (Result.Error e)     (do
-                          (println* e)
+                          (Clog.warn e)
                           (bad-request))))
 
 (defn routes []
