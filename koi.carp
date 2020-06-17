@@ -64,9 +64,7 @@
   (defn-do serve-client [pool]
     (let [routes (Pool.get-routes pool)]
       (while true
-        (match (Pool.pop-client-sock pool)
-          Maybe.Nothing (System.sleep-micros 100)
-          (Maybe.Just client)
+        (let [client (Pool.pop-client-sock pool)]
           (let-do [req (read &client)]
             (println* &(fmt "---REQUEST---\n%s" &req))
             (let-do [res (Res.str &(get-res-from-routes req &routes))]
@@ -103,7 +101,7 @@
   (defn-do serve [ip port routes]
     (print-registered-routes &routes)
     (Socket.with-server server ip port
-      (let-do  [pool (Pool.init (Mutex.init) [] routes)]
+      (let-do  [pool (Pool.new routes)]
         (spawn-worker-threads (get-worker-count) &pool &serve-client)
         (listen &server)
         (println* (fmt "Listening on %s:%i" ip port))

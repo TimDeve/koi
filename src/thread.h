@@ -30,3 +30,13 @@ int Thread_getcpucount() {
   return 2;
 #endif
 }
+
+pthread_cond_t Cond_init() {
+  pthread_cond_t condition;
+
+  int result = pthread_cond_init(&condition, NULL);
+
+  assert(result == 0);
+
+  return condition;
+}

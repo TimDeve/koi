@@ -19,10 +19,28 @@
   (defn unlock [mutex]
     (= (unlock-c mutex) 0)))
 
-(deftype Client [sock Socket])
+(register-type Cond "pthread_cond_t")
+(defmodule Cond
+  (register init (Fn [] Cond) "Cond_init")
+  (register wait-c (Fn [(Ref Cond) (Ref Mutex)] Int) "pthread_cond_wait")
+  (defn wait [cond mutex]
+    (= (wait-c cond mutex) 0))
+  (register signal-c (Fn [(Ref Cond)] Int) "pthread_cond_signal")
+  (defn signal [cond]
+    (= (signal-c cond) 0)))
 
-(deftype Pool [mutex Mutex clients (Array Client) routes (Array Route)])
+(deftype Client [sock Socket])
+(defmodule Client
+  (defn get-sock [client]
+    (let [sock (Unsafe.unsafe-deref (Client.sock &client))
+          _ (Unsafe.leak client)]
+      sock)))
+
+(deftype Pool [mutex Mutex has-work Cond clients (Array Client) routes (Array Route)])
 (defmodule Pool
+  (defn new [routes]
+    (Pool.init (Mutex.init) (Cond.init) [] routes))
+
   (defn get-routes [pool]
     (let [lock (Mutex.lock (Pool.mutex pool))
           routes @(Pool.routes pool)
@@ -33,21 +51,19 @@
     (do
       (void (Mutex.lock (Pool.mutex pool)))
       (Array.push-back! (Pool.clients pool) (Client.init client-sock))
+      (void (Cond.signal (Pool.has-work pool)))
       (void (Mutex.unlock (Pool.mutex pool)))))
 
   (defn pop-client-sock [pool]
     (do
      (void (Mutex.lock (Pool.mutex pool)))
-     (if (> (Array.length (Pool.clients pool)) 0)
-       (let-do [client (Array.unsafe-first (Pool.clients pool))
-                sock (Unsafe.unsafe-deref (Client.sock &client))
-                _ (Unsafe.leak client)]
-         (Pool.set-clients! pool (Array.suffix (Pool.clients pool) 1))
-         (void (Mutex.unlock (Pool.mutex pool)))
-         (Maybe.Just sock))
-       (do
-         (void (Mutex.unlock (Pool.mutex pool)))
-         (Maybe.Nothing))))))
+     (while (<= (Array.length (Pool.clients pool)) 0)
+       (void (Cond.wait (Pool.has-work pool) (Pool.mutex pool))))
+     (let-do [client (Array.unsafe-first (Pool.clients pool))
+              sock (Client.get-sock client)]
+       (Pool.set-clients! pool (Array.suffix (Pool.clients pool) 1))
+       (void (Mutex.unlock (Pool.mutex pool)))
+       sock))))
 
 (register-type Thread "pthread_t")
 (defmodule Thread
@@ -55,3 +71,4 @@
   (register create (Fn [(Ref Thread) (Ref (Fn [(Ref Pool)] ())) (Ref Pool)] Bool) "Thread_create"))
 
 (register get-cpu-count (Fn [] Int) "Thread_getcpucount")
+
