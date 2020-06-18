@@ -1,0 +1,46 @@
+(Project.config "title" "koi-todos-example")
+
+(load "templates.carp")
+(load "../../koi.carp")
+
+(use Koi)
+
+(def todos-db [@"Have less things on list" @"Stuff"])
+
+(defmodule TodoDomain
+  (sig get-todos-handler (Fn [Req] Res))
+  (defn get-todos-handler [req]
+    (Res.send (HttpStatus.Ok)
+              @"text/html"
+              (Template.todos-page-html &todos-db)))
+
+  (deftype AddRequest [description String])
+  (sig add-todo-handler (Fn [Req] Res))
+  (defn add-todo-handler [req]
+    (match (Req.form-into AddRequest &req)
+      (Result.Error e)   (bad-request)
+      (Result.Success q) (do
+                          (push-back! &todos-db @(AddRequest.description &q))
+                          (Res.found @"/"))))
+
+  (deftype RemoveRequest [id Int])
+  (sig remove-todo-handler (Fn [Req] Res))
+  (defn remove-todo-handler [req]
+    (match (Req.form-into RemoveRequest &req)
+      (Result.Error e)   (bad-request)
+      (Result.Success q) (do
+                          (set!
+                            todos-db
+                            (Array.remove-nth
+                              @(RemoveRequest.id &q)
+                              @&todos-db))
+                          (Res.found @"/"))))
+
+  (defn routes []
+    [(Route.init (HttpVerb.GET)  @"/" get-todos-handler)
+     (Route.init (HttpVerb.POST) @"/" add-todo-handler)
+     (Route.init (HttpVerb.POST) @"/delete" remove-todo-handler)]))
+
+(defn main []
+  (serve "localhost" 8080 (Array.concat &[(TodoDomain.routes) (static "static")])))
+

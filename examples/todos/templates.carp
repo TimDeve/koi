@@ -1,0 +1,52 @@
+(load "git@github.com:TimDeve/hoquet@v0.1.1")
+(load "git@github.com:TimDeve/pair-spread@v0.1.0")
+
+(defmodule TodoDomain
+  (defmodule Template
+    (defn add-todo-form-html []
+      (with Elements
+        (form
+         {@"action" @"/"
+          @"method" @"POST"
+          @"class" @"add-todo-form"}
+         [(input {@"name" @"description"
+                  @"placeholder" @"What to do?"})])))
+
+    (defn delete-todo-form-html [id]
+      (with Elements
+        (form
+         {@"action" @"/delete"
+          @"method" @"POST"}
+         [(input {@"name" @"id"
+                  @"value" (str id)
+                  @"type" @"hidden"})
+          (button {} [@"×"])])))
+
+    (defn todo-html [id description]
+      (with Elements
+       (li {@"class" @"todo"}
+        [(delete-todo-form-html id)
+         description])))
+
+    (defn todos-html [todos]
+      (with Elements
+        (ul {@"class" @"todos"}
+         (Array.copy-map
+          &(fn [pair]
+            (Pair.spread [id description @pair]
+             (todo-html id description)))
+          &(Array.enumerated todos)))))
+
+    (defn todos-page-html [todos]
+      (with Elements
+        (html {}
+          [(head {}
+            [(meta {@"charset" @"UTF-8"})
+             (link {@"href" @"/static/index.css" @"rel" @"stylesheet"})
+             (script {@"src" @"/static/index.js" @"async" @"true"} [@""])])
+           (body {}
+            [(div {@"class" @"container"}
+              [(h1 {} [@"Todo"])
+               (add-todo-form-html)
+               (todos-html todos)])])])))))
+

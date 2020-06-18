@@ -1,4 +1,6 @@
-(load "git@github.com:TimDeve/koi@master")
+(Project.config "title" "koi-simple-example")
+
+(load "../../koi.carp")
 
 (use Koi)
 
