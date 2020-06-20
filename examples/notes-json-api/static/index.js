@@ -44,12 +44,14 @@ function NewNoteForm({onSuccess}) {
   return html`
     <form onSubmit=${createNewNote}>
       <input type="text" 
+             placeholder="Title"
              onInput=${(e) => setTitle(e.target.value)} 
              value=${title} />
       <br />
-      <input type="text" 
-             onInput=${(e) => setContent(e.target.value)} 
-             value=${content} />
+      <textarea type="text" 
+                placeholder="Content"
+                onInput=${(e) => setContent(e.target.value)} 
+                value=${content} />
       <br />
       <button>Submit</button>
     </form>
