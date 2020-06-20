@@ -8,8 +8,8 @@ build-examples:
 test:
 	./test.sh
 
-run-todo-example:
-	cd examples/todos && carp -x main.carp
+run-form-example:
+	cd examples/todos-form && carp -x main.carp
 
 run-simple-example:
 	cd examples/simple && carp -x main.carp

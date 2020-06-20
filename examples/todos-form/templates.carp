@@ -42,8 +42,7 @@
         (html {}
           [(head {}
             [(meta {@"charset" @"UTF-8"})
-             (link {@"href" @"/static/index.css" @"rel" @"stylesheet"})
-             (script {@"src" @"/static/index.js" @"async" @"true"} [@""])])
+             (link {@"href" @"/static/index.css" @"rel" @"stylesheet"})])
            (body {}
             [(div {@"class" @"container"}
               [(h1 {} [@"Todo"])
