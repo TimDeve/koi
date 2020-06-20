@@ -14,3 +14,6 @@ run-todo-example:
 run-simple-example:
 	cd examples/simple && carp -x main.carp
 
+run-json-api-example:
+	cd examples/notes-json-api && carp -x main.carp
+

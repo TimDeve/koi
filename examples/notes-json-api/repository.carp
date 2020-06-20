@@ -1,0 +1,66 @@
+(defmodule Repository
+  (defn create-table []
+    (match (SQLite3.open "db.sqlite3")
+      (Result.Error err) (Clog.fatal &(fmt "Error opening db: %s" &err))
+      (Result.Success db)
+      (match (SQLite3.query
+               &db
+               "CREATE TABLE IF NOT EXISTS
+               notes
+               (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, content TEXT)"
+               &[])
+        (Result.Success _) (SQLite3.close db)
+        (Result.Error err) (do (SQLite3.close db)
+                               (Clog.fatal &(fmt "Error creating table: %s" &err))))))
+
+  (defn new-note-to-sql-note [new-note]
+    [(to-sqlite3 @(NewNote.title new-note)) (to-sqlite3 @(NewNote.content new-note))])
+
+  (defn add-note [new-note]
+    (match (SQLite3.open "db.sqlite3")
+      (Result.Error err) (Result.Error (fmt "Error opening db: %s" &err))
+      (Result.Success db)
+      (match (SQLite3.query
+               &db
+               "INSERT INTO notes (title, content) VALUES (?1, ?2);"
+               &(new-note-to-sql-note &new-note))
+        (Result.Success _) (do (SQLite3.close db)
+                               (Result.Success 0))
+        (Result.Error err) (do (SQLite3.close db)
+                               (Result.Error (fmt "Error inserting new note: %s" &err))))))
+  (defn get-sql-int [sql-type]
+    (match sql-type
+      (SQLite3.Type.Integer int) (Result.Success int)
+      _                          (Result.Error @"Not an integer")))
+
+  (defn get-sql-string [sql-type]
+    (match sql-type
+      (SQLite3.Type.Text s) (Result.Success s)
+      _                     (Result.Error @"Not a text")))
+
+  (sig sql-notes-to-notes (Fn [(Array (Array SQLite3.Type))] (Array Note)))
+  (defn sql-notes-to-notes [notes]
+    (Array.copy-map
+     &(fn [sql-note]
+       (let [id-sql (Array.unsafe-nth sql-note 0)
+             id (Result.unsafe-from-success (get-sql-int @id-sql))
+             title-sql (Array.unsafe-nth sql-note 1)
+             title (Result.unsafe-from-success (get-sql-string @title-sql))
+             content-sql (Array.unsafe-nth sql-note 2)
+             content (Result.unsafe-from-success (get-sql-string @content-sql))]
+         (Note.init id title content)))
+     &notes))
+
+  (defn get-notes []
+    (match (SQLite3.open "db.sqlite3")
+      (Result.Error err) (Result.Error (fmt "Error opening db: %s" &err))
+      (Result.Success db)
+      (match (SQLite3.query
+               &db
+               "SELECT id, title, content from notes;"
+               &[])
+        (Result.Success result) (do (SQLite3.close db)
+                                    (Result.Success (sql-notes-to-notes result)))
+        (Result.Error err)      (do (SQLite3.close db)
+                                    (Result.Error (fmt "Error retrieving notes: %s" &err)))))))
+

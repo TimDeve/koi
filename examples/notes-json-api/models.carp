@@ -1,0 +1,3 @@
+(deftype NewNote [title String content String])
+(deftype Note [id Int title String content String])
+

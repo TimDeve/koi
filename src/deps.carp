@@ -1,7 +1,7 @@
 (load "git@github.com:carpentry-org/sockets@edbb459fb909c51be907abca753a3ae8ea80f242")
 (load "git@github.com:carpentry-org/uri@0.0.9")
 (load "git@github.com:carpentry-org/file@0.1.1")
-(load "git@github.com:TimDeve/sheriff@v0.2.3")
+(load "git@github.com:TimDeve/sheriff@v0.5.0")
 (load "git@github.com:TimDeve/mime@v0.0.1")
 (load "git@github.com:TimDeve/clog@v0.1.0")
 

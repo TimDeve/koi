@@ -50,7 +50,9 @@
   (defn get-res-from-routes [req-str routes]
     (match (Req.parse &req-str)
       (Result.Success req) ((get-handler-from-routes &req routes) req)
-      (Result.Error _)     (bad-request)))
+      (Result.Error err)   (do
+                            (Clog.error &err)
+                            (bad-request))))
 
   (hidden print-registered-routes)
   (private print-registered-routes)

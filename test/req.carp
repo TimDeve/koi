@@ -1,5 +1,3 @@
-(Debug.sanitize-addresses)
-
 (load "Test.carp")
 (load "../koi.carp")
 

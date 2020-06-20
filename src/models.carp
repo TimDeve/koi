@@ -5,6 +5,7 @@
 
   (deftype HttpStatus
     Ok
+    Created
     NotFound
     BadRequest
     Found
@@ -14,6 +15,7 @@
    (defn message [status]
      (match-ref status
       Ok @"OK"
+      Created @"Created"
       NotFound @"Not Found"
       BadRequest @"Bad Request"
       Found @"Found"
@@ -22,6 +24,7 @@
    (defn code [status]
      (match-ref status
       Ok 200
+      Created 201
       NotFound 404
       BadRequest 400
       Found 302

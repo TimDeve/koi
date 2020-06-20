@@ -1,0 +1,64 @@
+(Project.config "title" "koi-notes-example")
+
+(load "git@github.com:TimDeve/hoquet@v0.1.1")
+(load "git@github.com:TimDeve/sqlite3.git@update-to-latest-carp")
+
+(load "../../koi.carp")
+
+(load "models.carp")
+(load "repository.carp")
+
+(use Koi)
+
+(defn home-html-template []
+  (with Elements
+    (html {}
+      [(head {}
+        [(meta {@"charset" @"UTF-8"})
+         (link {@"href" @"/static/index.css" @"rel" @"stylesheet"})
+         (script {@"src" @"/static/index.js" @"async" @"true" @"type" @"module"} [@""])])
+       (body {}
+        [(div {@"class" @"container"}
+          [(h1 {} [@"Notes"])
+           (div {@"id" @"root"} [])])])])))
+
+(sig get-home-handler (Fn [Req] Res))
+(defn get-home-handler [req]
+  (Res.send (HttpStatus.Ok)
+            @"text/html"
+            (home-html-template)))
+
+(sig add-note-handler (Fn [Req] Res))
+(defn add-note-handler [req]
+  (match (Req.json-into NewNote &req)
+    (Result.Error _) (bad-request)
+    (Result.Success note)
+    (match (Repository.add-note note)
+      (Result.Error err) (do (Clog.error &err)
+                             (Res.send (HttpStatus.InternalServerError)
+                                       @"text/plain"
+                                       @"500"))
+      (Result.Success _) (Res.send (HttpStatus.Created)
+                                   @"text/plain"
+                                   @"201"))))
+
+(sig get-notes-handler (Fn [Req] Res))
+(defn get-notes-handler [req]
+  (match (Repository.get-notes)
+    (Result.Error err)   (do (Clog.error &err)
+                             (Res.send (HttpStatus.InternalServerError)
+                                       @"text/plain"
+                                       @"500"))
+    (Result.Success res) (Res.send (HttpStatus.Created)
+                                   @"text/json"
+                                   (Sheriff.JSON.marshall (Array Note) &res))))
+
+(defn routes []
+  [(Route.init (HttpVerb.GET)   @"/"          get-home-handler)
+   (Route.init (HttpVerb.GET)   @"/api/notes" get-notes-handler)
+   (Route.init (HttpVerb.POST)  @"/api/notes" add-note-handler)])
+
+(defn-do main []
+  (Repository.create-table)
+  (serve "localhost" 8080 (Array.concat &[(routes) (static "static")])))
+
