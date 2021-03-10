@@ -5,7 +5,7 @@ A toy web framework for [Carp](https://github.com/carp-lang/Carp)
 ## Example
 
 ```clojure
-(load "git@github.com:TimDeve/koi@v0.1.0")
+(load "git@github.com:TimDeve/koi@v0.2.0")
 
 (use Koi)
 

@@ -1,7 +1,5 @@
 (load "models.carp")
 
-(use Koi)
-
 (deftype Res [status HttpStatus
               version HttpVersion
               headers (Map String (Array String))

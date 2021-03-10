@@ -36,7 +36,12 @@
           _ (Unsafe.leak client)]
       sock)))
 
-(deftype Pool [mutex Mutex has-work Cond clients (Array Client) routes (Array Route)])
+(deftype Pool
+ [mutex Mutex
+  has-work Cond
+  clients (Array Client)
+  routes (Array Route)])
+
 (defmodule Pool
   (defn new [routes]
     (Pool.init (Mutex.init) (Cond.init) [] routes))
@@ -59,7 +64,7 @@
      (void (Mutex.lock (Pool.mutex pool)))
      (while (<= (Array.length (Pool.clients pool)) 0)
        (void (Cond.wait (Pool.has-work pool) (Pool.mutex pool))))
-     (let-do [client (Array.unsafe-first (Pool.clients pool))
+     (let-do [client @(Array.unsafe-first (Pool.clients pool))
               sock (Client.get-sock client)]
        (Pool.set-clients! pool (Array.suffix (Pool.clients pool) 1))
        (void (Mutex.unlock (Pool.mutex pool)))

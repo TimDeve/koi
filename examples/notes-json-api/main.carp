@@ -1,7 +1,7 @@
 (Project.config "title" "koi-notes-example")
 
 (load "git@github.com:TimDeve/hoquet@v0.1.1")
-(load "git@github.com:TimDeve/sqlite3.git@update-to-latest-carp")
+(load "https://veitheller.de/git/carpentry/sqlite3@0.0.5")
 
 (load "../../koi.carp")
 

@@ -1,75 +1,75 @@
-(defmodule Koi
-  (def V1 "HTTP/1.0")
+(def V1 "HTTP/1.0")
 
-  (def V11 "HTTP/1.1")
+(def V11 "HTTP/1.1")
 
-  (deftype HttpStatus
-    Ok
-    Created
-    NotFound
-    BadRequest
-    Found
-    InternalServerError)
+(deftype HttpStatus
+  Ok
+  Created
+  NotFound
+  BadRequest
+  Found
+  InternalServerError)
 
-  (defmodule HttpStatus
-   (defn message [status]
-     (match-ref status
-      Ok @"OK"
-      Created @"Created"
-      NotFound @"Not Found"
-      BadRequest @"Bad Request"
-      Found @"Found"
-      InternalServerError @"Internal Server Error"))
+(defmodule HttpStatus
+ (defn message [status]
+   (match-ref status
+    Ok @"OK"
+    Created @"Created"
+    NotFound @"Not Found"
+    BadRequest @"Bad Request"
+    Found @"Found"
+    InternalServerError @"Internal Server Error"))
 
-   (defn code [status]
-     (match-ref status
-      Ok 200
-      Created 201
-      NotFound 404
-      BadRequest 400
-      Found 302
-      InternalServerError 500)))
+ (defn code [status]
+   (match-ref status
+    Ok 200
+    Created 201
+    NotFound 404
+    BadRequest 400
+    Found 302
+    InternalServerError 500)))
 
-  (deftype HttpVersion
-   One
-   OneDotOne)
+(deftype HttpVersion
+ One
+ OneDotOne)
 
-  (defmodule HttpVersion
-   (defn str [version]
-    (match-ref version
-     One @"HTTP/1.0"
-     OneDotOne @"HTTP/1.1")))
+(defmodule HttpVersion
+ (defn str [version]
+  (match-ref version
+   One @"HTTP/1.0"
+   OneDotOne @"HTTP/1.1")))
 
-  (deftype HttpVerb
-   GET
-   POST
-   DELETE
-   NOT_HANDLED)
+(deftype HttpVerb
+ GET
+ POST
+ DELETE
+ NOT_HANDLED)
 
-  (defmodule HttpVerb
-   (defn parse [s]
-    (case s
-     "GET" (GET)
-     "POST" (POST)
-     "DELETE" (DELETE)
-     (NOT_HANDLED)))
+(defmodule HttpVerb
+ (defn parse [s]
+  (case s
+   "GET" (GET)
+   "POST" (POST)
+   "DELETE" (DELETE)
+   (NOT_HANDLED)))
 
-   (defn str [verb]
-    (match-ref verb
-     GET @"GET"
-     POST @"POST"
-     DELETE @"DELETE"
-     NOT_HANDLED @"NOT_HANDLED"))
+ (defn str [verb]
+  (match-ref verb
+   GET @"GET"
+   POST @"POST"
+   DELETE @"DELETE"
+   NOT_HANDLED @"NOT_HANDLED"))
 
-   (defn to-int [verb]
-    (match-ref verb
-     GET 0
-     POST 1
-     DELETE 3
-     NOT_HANDLED 4))
+ (defn to-int [verb]
+  (match-ref verb
+   HttpVerb.GET 0
+   HttpVerb.POST 1
+   HttpVerb.DELETE 3
+   HttpVerb.NOT_HANDLED 4))
+ ; (implements to-int HttpVerb.to-int)
 
-   (implements = =)
-   (defn = [a b]
-    (Int.= (Koi.HttpVerb.to-int a) (Koi.HttpVerb.to-int b))))
+ (implements = =)
+ (defn = [a b]
+  (Int.= (HttpVerb.to-int a) (HttpVerb.to-int b))))
 
-  (deftype Route [verb HttpVerb path String handler (Fn [Req] Res)]))
+(deftype Route [verb HttpVerb path String handler (Fn [Req] Res)])

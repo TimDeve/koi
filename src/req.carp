@@ -1,8 +1,6 @@
 (load "deps.carp")
 (load "models.carp")
 
-(use Koi)
-
 (deftype Req [verb HttpVerb
               version String
               uri URI
