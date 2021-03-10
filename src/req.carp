@@ -21,7 +21,7 @@
 
   (defmacro form-into [t r]
     (list 'match (list 'Req.params-from-form (list 'Req.body r))
-      (list 'Result.Success 'm) (list 'Result.Success (list 'Sheriff.KV.unmarshall t (list 'ref 'm)))
+      (list 'Result.Success 'm) (list 'Result.Success (list 'SheriffKV.unmarshall t (list 'ref 'm)))
       (list 'Result.Error 'e) (list 'Result.Error 'e)))
 
   (defn params-from-form [s]
