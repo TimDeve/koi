@@ -51,7 +51,7 @@
                                        @"500"))
     (Result.Success res) (Res.send (HttpStatus.Created)
                                    @"text/json"
-                                   (Sheriff.JSON.marshall (Array Note) &res))))
+                                   (SheriffJSON.marshall (Array Note) &res))))
 
 (defn routes []
   [(Route.init (HttpVerb.GET)   @"/"          get-home-handler)

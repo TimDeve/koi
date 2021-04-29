@@ -30,7 +30,7 @@
           &(fn [q] (Map.endo-map &(fn [k v] (form-unescape v)) q)))))
 
   (defmacro json-into [t r]
-    (list 'Sheriff.JSON.unmarshall t (list 'Req.body r)))
+    (list 'SheriffJSON.unmarshall t (list 'Req.body r)))
 
   (defn path [r]
     (Maybe.apply @(URI.path (Req.uri r))
