@@ -50,7 +50,7 @@
                                        @"text/plain"
                                        @"500"))
     (Result.Success res) (Res.send (HttpStatus.Created)
-                                   @"text/json"
+                                   @"application/json"
                                    (SheriffJSON.marshall (Array Note) &res))))
 
 (defn routes []
