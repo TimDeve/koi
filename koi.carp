@@ -82,7 +82,7 @@
         (Clog.fatal &(fmt "Failed to create worker thread %i" i))))))
 
   (defn get-worker-count []
-    (match (IO.getenv @"KOI_WORKER_COUNT")
+    (match (IO.getenv "KOI_WORKER_COUNT")
       Maybe.Nothing (get-cpu-count)
       (Maybe.Just count-str)
       (match (Int.from-string &count-str)
