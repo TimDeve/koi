@@ -2,7 +2,9 @@
 
 A toy web framework for [Carp](https://github.com/carp-lang/Carp)
 
-## Example
+## Examples
+
+### [Basic](./examples/simple)
 
 ```clojure
 (load "git@github.com:TimDeve/koi@v0.2.1")
@@ -21,3 +23,14 @@ A toy web framework for [Carp](https://github.com/carp-lang/Carp)
   (serve "localhost" 8080 (routes)))
 ```
 
+### [TODO App using HTML form](./examples/todos-form)
+
+```
+make run-form-example
+```
+
+### [JSON API with SQLite](./examples/notes-json-api)
+
+```
+make run-json-api-example
+```
