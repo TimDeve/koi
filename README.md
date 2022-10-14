@@ -2,12 +2,16 @@
 
 A toy web framework for [Carp](https://github.com/carp-lang/Carp)
 
+## Warning
+
+This is very much a proof of concept please don't use this for anything serious.
+
 ## Examples
 
 ### [Basic](./examples/simple)
 
 ```clojure
-(load "git@github.com:TimDeve/koi@v0.2.1")
+(load "https://github.com/TimDeve/koi@v0.2.2")
 
 (use Koi)
 

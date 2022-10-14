@@ -1,5 +1,5 @@
-(load "git@github.com:TimDeve/hoquet@v0.1.1")
-(load "git@github.com:TimDeve/pair-spread@v0.2.0")
+(load "https://github.com/TimDeve/hoquet@v0.1.1")
+(load "https://github.com/TimDeve/pair-spread@v0.2.0")
 
 (defmodule TodoDomain
   (defmodule Template
